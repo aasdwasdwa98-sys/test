@@ -1,0 +1,464 @@
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create main ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MintLibraryIntro"
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = playerGui
+
+-- Main container (covers entire screen)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+mainFrame.Position = UDim2.new(0, 0, 0, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 15, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.ZIndex = 1000
+mainFrame.Parent = screenGui
+
+-- Animated gradient background
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 25, 35)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 30, 45)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 15, 25))
+}
+bgGradient.Rotation = 45
+bgGradient.Parent = mainFrame
+
+-- Particles container
+local particlesFrame = Instance.new("Frame")
+particlesFrame.Name = "ParticlesFrame"
+particlesFrame.Size = UDim2.new(1, 0, 1, 0)
+particlesFrame.BackgroundTransparency = 1
+particlesFrame.ZIndex = 1001
+particlesFrame.Parent = mainFrame
+
+-- Central content container
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(0, 400, 0, 300)
+contentFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+contentFrame.BackgroundTransparency = 1
+contentFrame.ZIndex = 1010
+contentFrame.Parent = mainFrame
+
+-- Modern mint leaf logo container
+local logoContainer = Instance.new("Frame")
+logoContainer.Name = "LogoContainer"
+logoContainer.Size = UDim2.new(0, 100, 0, 100)
+logoContainer.Position = UDim2.new(0.5, -50, 0, 0)
+logoContainer.BackgroundTransparency = 1
+logoContainer.ZIndex = 1011
+logoContainer.Parent = contentFrame
+
+-- Simple, clean leaf design that actually looks like a leaf
+-- Main leaf body (simple oval, slightly pointed)
+local leafBody = Instance.new("Frame")
+leafBody.Name = "LeafBody"
+leafBody.Size = UDim2.new(0, 45, 0, 75)
+leafBody.Position = UDim2.new(0, 27, 0, 10)
+leafBody.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+leafBody.BorderSizePixel = 0
+leafBody.ZIndex = 1012
+leafBody.Parent = logoContainer
+
+-- Leaf gradient for depth
+local leafGradient = Instance.new("UIGradient")
+leafGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(52, 231, 128)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(46, 204, 113)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(39, 174, 96))
+}
+leafGradient.Rotation = 120
+leafGradient.Parent = leafBody
+
+-- Make it leaf-shaped (more pointed at bottom)
+local leafCorner = Instance.new("UICorner")
+leafCorner.CornerRadius = UDim.new(0.4, 0)
+leafCorner.Parent = leafBody
+
+-- Simple highlight for shine
+local leafHighlight = Instance.new("Frame")
+leafHighlight.Name = "LeafHighlight"
+leafHighlight.Size = UDim2.new(0, 12, 0, 25)
+leafHighlight.Position = UDim2.new(0, 8, 0, 12)
+leafHighlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+leafHighlight.BackgroundTransparency = 0.75
+leafHighlight.BorderSizePixel = 0
+leafHighlight.ZIndex = 1014
+leafHighlight.Parent = leafBody
+
+local highlightCorner = Instance.new("UICorner")
+highlightCorner.CornerRadius = UDim.new(0.5, 0)
+highlightCorner.Parent = leafHighlight
+
+-- Simple stem
+local leafStem = Instance.new("Frame")
+leafStem.Name = "LeafStem"
+leafStem.Size = UDim2.new(0, 4, 0, 15)
+leafStem.Position = UDim2.new(0, 48, 0, 85)
+leafStem.BackgroundColor3 = Color3.fromRGB(39, 174, 96)
+leafStem.BorderSizePixel = 0
+leafStem.ZIndex = 1012
+leafStem.Parent = logoContainer
+
+local stemCorner = Instance.new("UICorner")
+stemCorner.CornerRadius = UDim.new(0.5, 0)
+stemCorner.Parent = leafStem
+
+-- Central vein (simple line down the middle)
+local centralVein = Instance.new("Frame")
+centralVein.Name = "CentralVein"
+centralVein.Size = UDim2.new(0, 1, 0, 55)
+centralVein.Position = UDim2.new(0, 49, 0, 18)
+centralVein.BackgroundColor3 = Color3.fromRGB(34, 153, 84)
+centralVein.BorderSizePixel = 0
+centralVein.ZIndex = 1015
+centralVein.Parent = logoContainer
+
+-- Simple side veins (just a few clean lines)
+for i = 1, 3 do
+    local sideVein = Instance.new("Frame")
+    sideVein.Name = "SideVein" .. i
+    sideVein.Size = UDim2.new(0, 10, 0, 1)
+    sideVein.Position = UDim2.new(0, 34, 0, 25 + (i * 15))
+    sideVein.BackgroundColor3 = Color3.fromRGB(34, 153, 84)
+    sideVein.BackgroundTransparency = 0.3
+    sideVein.BorderSizePixel = 0
+    sideVein.ZIndex = 1014
+    sideVein.Rotation = -20
+    sideVein.Parent = logoContainer
+    
+    local sideVeinR = Instance.new("Frame")
+    sideVeinR.Name = "SideVeinR" .. i
+    sideVeinR.Size = UDim2.new(0, 10, 0, 1)
+    sideVeinR.Position = UDim2.new(0, 55, 0, 25 + (i * 15))
+    sideVeinR.BackgroundColor3 = Color3.fromRGB(34, 153, 84)
+    sideVeinR.BackgroundTransparency = 0.3
+    sideVeinR.BorderSizePixel = 0
+    sideVeinR.ZIndex = 1014
+    sideVeinR.Rotation = 20
+    sideVeinR.Parent = logoContainer
+end
+
+-- Modern typography
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, 0, 0, 60)
+titleLabel.Position = UDim2.new(0, 0, 0, 120)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "mint"
+titleLabel.TextSize = 48
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextScaled = true
+titleLabel.ZIndex = 1011
+titleLabel.Parent = contentFrame
+
+-- Subtitle
+local subtitleLabel = Instance.new("TextLabel")
+subtitleLabel.Name = "SubtitleLabel"
+subtitleLabel.Size = UDim2.new(1, 0, 0, 25)
+subtitleLabel.Position = UDim2.new(0, 0, 0, 185)
+subtitleLabel.BackgroundTransparency = 1
+subtitleLabel.Text = "by simonderek"
+subtitleLabel.TextSize = 18
+subtitleLabel.TextColor3 = Color3.fromRGB(46, 204, 113)
+subtitleLabel.Font = Enum.Font.Gotham
+subtitleLabel.ZIndex = 1011
+subtitleLabel.Parent = contentFrame
+
+-- Modern progress container
+local progressContainer = Instance.new("Frame")
+progressContainer.Name = "ProgressContainer"
+progressContainer.Size = UDim2.new(0, 280, 0, 40)
+progressContainer.Position = UDim2.new(0.5, -140, 0, 230)
+progressContainer.BackgroundTransparency = 1
+progressContainer.ZIndex = 1011
+progressContainer.Parent = contentFrame
+
+-- Progress bar background
+local progressBg = Instance.new("Frame")
+progressBg.Name = "ProgressBg"
+progressBg.Size = UDim2.new(1, 0, 0, 4)
+progressBg.Position = UDim2.new(0, 0, 1, -10)
+progressBg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+progressBg.BackgroundTransparency = 0.9
+progressBg.BorderSizePixel = 0
+progressBg.ZIndex = 1012
+progressBg.Parent = progressContainer
+
+local progressBgCorner = Instance.new("UICorner")
+progressBgCorner.CornerRadius = UDim.new(0, 2)
+progressBgCorner.Parent = progressBg
+
+-- Progress fill
+local progressFill = Instance.new("Frame")
+progressFill.Name = "ProgressFill"
+progressFill.Size = UDim2.new(0, 0, 1, 0)
+progressFill.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+progressFill.BorderSizePixel = 0
+progressFill.ZIndex = 1013
+progressFill.Parent = progressBg
+
+local progressFillCorner = Instance.new("UICorner")
+progressFillCorner.CornerRadius = UDim.new(0, 2)
+progressFillCorner.Parent = progressFill
+
+-- Loading text
+local loadingText = Instance.new("TextLabel")
+loadingText.Name = "LoadingText"
+loadingText.Size = UDim2.new(1, 0, 0, 20)
+loadingText.Position = UDim2.new(0, 0, 0, 0)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "Initializing..."
+loadingText.TextSize = 14
+loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadingText.TextTransparency = 0.6
+loadingText.Font = Enum.Font.Gotham
+loadingText.ZIndex = 1012
+loadingText.Parent = progressContainer
+
+-- Enhanced particle system
+local particles = {}
+local particleCount = 30
+
+local function createParticle()
+    local particle = Instance.new("Frame")
+    particle.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+    particle.BackgroundTransparency = math.random(70, 90) / 100
+    particle.BorderSizePixel = 0
+    particle.ZIndex = 1002
+    
+    local size = math.random(1, 3)
+    particle.Size = UDim2.new(0, size, 0, size)
+    particle.Position = UDim2.new(math.random() * 1.2 - 0.1, 0, math.random() * 1.2 - 0.1, 0)
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.5, 0)
+    corner.Parent = particle
+    
+    particle.Parent = particlesFrame
+    
+    local particleData = {
+        frame = particle,
+        velocity = {
+            x = (math.random() - 0.5) * 0.001,
+            y = (math.random() - 0.5) * 0.001
+        },
+        life = math.random(300, 600)
+    }
+    
+    table.insert(particles, particleData)
+end
+
+-- Create particles
+for i = 1, particleCount do
+    createParticle()
+end
+
+-- Particle animation
+local particleConnection = RunService.Heartbeat:Connect(function()
+    for i = #particles, 1, -1 do
+        local p = particles[i]
+        if p.frame.Parent then
+            local pos = p.frame.Position
+            local newX = pos.X.Scale + p.velocity.x
+            local newY = pos.Y.Scale + p.velocity.y
+            
+            if newX > 1.1 then newX = -0.1 end
+            if newX < -0.1 then newX = 1.1 end
+            if newY > 1.1 then newY = -0.1 end
+            if newY < -0.1 then newY = 1.1 end
+            
+            p.frame.Position = UDim2.new(newX, 0, newY, 0)
+            
+            p.life = p.life - 1
+            if p.life <= 0 then
+                p.frame:Destroy()
+                table.remove(particles, i)
+                createParticle()
+            end
+        end
+    end
+end)
+
+-- Smooth entrance animations with better timing
+local function startAnimations()
+    -- Set initial states for all elements
+    logoContainer.Position = UDim2.new(0.5, -50, 0, -50)
+    logoContainer.Size = UDim2.new(0, 0, 0, 0)
+    titleLabel.TextTransparency = 1
+    titleLabel.Position = UDim2.new(0, 0, 0, 140)
+    subtitleLabel.TextTransparency = 1
+    subtitleLabel.Position = UDim2.new(0, 0, 0, 205)
+    progressContainer.Position = UDim2.new(0.5, -140, 0, 270)
+    loadingText.TextTransparency = 1
+    progressBg.BackgroundTransparency = 1
+    
+    -- Logo entrance (faster and smoother)
+    local logoEntrance = TweenService:Create(
+        logoContainer,
+        TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {
+            Position = UDim2.new(0.5, -50, 0, 0),
+            Size = UDim2.new(0, 100, 0, 100)
+        }
+    )
+    logoEntrance:Play()
+    
+    -- Start floating immediately after logo appears
+    logoEntrance.Completed:Connect(function()
+        local logoFloat = TweenService:Create(
+            logoContainer,
+            TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+            {Position = UDim2.new(0.5, -50, 0, -8)}
+        )
+        logoFloat:Play()
+    end)
+    
+    -- Title entrance (start immediately after logo begins)
+    wait(0.15)
+    local titleEntrance = TweenService:Create(
+        titleLabel,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            TextTransparency = 0,
+            Position = UDim2.new(0, 0, 0, 120)
+        }
+    )
+    titleEntrance:Play()
+    
+    -- Subtitle entrance (very quick after title)
+    wait(0.1)
+    local subtitleEntrance = TweenService:Create(
+        subtitleLabel,
+        TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            TextTransparency = 0,
+            Position = UDim2.new(0, 0, 0, 185)
+        }
+    )
+    subtitleEntrance:Play()
+    
+    -- Progress container entrance (quick after subtitle)
+    wait(0.1)
+    local progressEntrance = TweenService:Create(
+        progressContainer,
+        TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -140, 0, 230)}
+    )
+    progressEntrance:Play()
+    
+    -- Loading text and progress bar fade in
+    local loadingTextFade = TweenService:Create(
+        loadingText,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {TextTransparency = 0.6}
+    )
+    loadingTextFade:Play()
+    
+    local progressBgFade = TweenService:Create(
+        progressBg,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {BackgroundTransparency = 0.9}
+    )
+    progressBgFade:Play()
+end
+
+-- Progress simulation with realistic loading steps
+local function simulateProgress()
+    local progress = 0
+    local loadingSteps = {
+        {text = "Initializing...", duration = 0.5},
+        {text = "Loading components...", duration = 1.0},
+        {text = "Setting up themes...", duration = 0.8},
+        {text = "Finalizing...", duration = 0.7},
+        {text = "Ready!", duration = 0.3}
+    }
+    
+    local currentStep = 1
+    local stepProgress = 0
+    local totalSteps = #loadingSteps
+    
+    local function updateProgress()
+        if currentStep <= totalSteps then
+            local step = loadingSteps[currentStep]
+            loadingText.Text = step.text
+            
+            stepProgress = stepProgress + (1 / (step.duration * 60)) -- 60 FPS
+            progress = ((currentStep - 1) + stepProgress) / totalSteps
+            
+            local progressTween = TweenService:Create(
+                progressFill,
+                TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {Size = UDim2.new(progress, 0, 1, 0)}
+            )
+            progressTween:Play()
+            
+            if stepProgress >= 1 then
+                currentStep = currentStep + 1
+                stepProgress = 0
+            end
+            
+            if progress >= 1 then
+                wait(0.5)
+                hideIntro()
+            end
+        end
+    end
+    
+    RunService.Heartbeat:Connect(updateProgress)
+end
+
+-- Modern exit animation
+function hideIntro()
+    local fadeOut = TweenService:Create(
+        mainFrame,
+        TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {BackgroundTransparency = 1}
+    )
+    
+    local contentFade = TweenService:Create(
+        contentFrame,
+        TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -200, 0.5, -200)}
+    )
+    
+    fadeOut:Play()
+    contentFade:Play()
+    
+    fadeOut.Completed:Connect(function()
+        particleConnection:Disconnect()
+        screenGui:Destroy()
+    end)
+end
+
+-- Background gradient animation
+spawn(function()
+    while mainFrame.Parent do
+        local gradientTween = TweenService:Create(
+            bgGradient,
+            TweenInfo.new(5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+            {Rotation = 225}
+        )
+        gradientTween:Play()
+        wait(5)
+    end
+end)
+
+
+spawn(function()
+    startAnimations()
+    wait(0.6) 
+    simulateProgress()
+end)
