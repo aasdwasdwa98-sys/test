@@ -120,10 +120,16 @@ function Mint.new(title)
     end
 
     -- Create ScreenGui
-    self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "MintUI"
-    self.ScreenGui.ResetOnSpawn = false
-    self.ScreenGui.Parent = PlayerGui
+local CoreGui = game:GetService("CoreGui")
+
+self.ScreenGui = Instance.new("ScreenGui")
+self.ScreenGui.Name = "MintUI"
+self.ScreenGui.IgnoreGuiInset = true
+self.ScreenGui.ResetOnSpawn = false
+self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+self.ScreenGui.DisplayOrder = 10e6
+self.ScreenGui.Parent = CoreGui
+
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
 	if gameProcessed then return end
