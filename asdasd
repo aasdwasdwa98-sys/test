@@ -124,7 +124,12 @@ function Mint.new(title)
     self.ScreenGui.Name = "MintUI"
     self.ScreenGui.ResetOnSpawn = false
     self.ScreenGui.Parent = PlayerGui
-    
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+
+	if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        self:Toggle()
+    end
     -- Main Frame
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
