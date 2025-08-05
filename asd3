@@ -128,8 +128,9 @@ function Mint.new(title)
 
 	if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
-        self:Toggle()
+        self:ToggleVis()
     end
+    end)
     -- Main Frame
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
