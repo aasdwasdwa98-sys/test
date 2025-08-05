@@ -1,0 +1,2156 @@
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local Mint = {}
+Mint.__index = Mint
+
+-- Refined Theme Configuration
+_G.Theme = {
+    Background = Color3.fromRGB(18, 20, 24),
+    Secondary = Color3.fromRGB(28, 32, 38),
+    Tertiary = Color3.fromRGB(35, 40, 48),
+    Accent = Color3.fromRGB(50, 200, 160),
+    AccentHover = Color3.fromRGB(65, 220, 180),
+    AccentDark = Color3.fromRGB(40, 160, 130),
+    Text = Color3.fromRGB(230, 235, 240),
+    TextSecondary = Color3.fromRGB(150, 160, 170),
+    TextDark = Color3.fromRGB(100, 110, 120),
+    Border = Color3.fromRGB(40, 45, 50),
+    BorderLight = Color3.fromRGB(50, 58, 65),
+    Success = Color3.fromRGB(50, 200, 160),
+    Warning = Color3.fromRGB(230, 180, 10),
+    Error = Color3.fromRGB(230, 60, 50),
+    Purple = Color3.fromRGB(120, 40, 200),
+    Blue = Color3.fromRGB(0, 110, 230)
+}
+
+-- Animation Configuration
+local Animations = {
+    Fast = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    Medium = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    Slow = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+}
+
+-- Utility Functions
+local function CreateCorner(radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 5)
+    return corner
+end
+
+local function CreateOnlyTopCorner(radius, parent)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 5)
+    corner.Parent = parent
+
+    local bottomLeft = Instance.new("Frame")
+    bottomLeft.AnchorPoint = Vector2.new(0, 1)
+    bottomLeft.Size = UDim2.new(0, radius, 0, radius)
+    bottomLeft.Position = UDim2.new(0, 0, 1, 0)
+    bottomLeft.BackgroundColor3 = parent.BackgroundColor3
+    bottomLeft.BorderSizePixel = 0
+    bottomLeft.ZIndex = parent.ZIndex
+    bottomLeft.Parent = parent
+
+    local bottomRight = bottomLeft:Clone()
+    bottomRight.AnchorPoint = Vector2.new(1, 1)
+    bottomRight.Position = UDim2.new(1, 0, 1, 0)
+    bottomRight.Parent = parent
+end
+
+local function CreateStroke(color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or _G.Theme.Border
+    stroke.Thickness = thickness or 1
+    return stroke
+end
+
+local function CreatePadding(top, bottom, left, right)
+    local uiPadding = Instance.new("UIPadding")
+    uiPadding.PaddingTop = UDim.new(0, top or 10)
+    uiPadding.PaddingBottom = UDim.new(0, bottom or top or 10)
+    uiPadding.PaddingLeft = UDim.new(0, left or top or 10)
+    uiPadding.PaddingRight = UDim.new(0, right or left or top or 10)
+    return uiPadding
+end
+
+local function CreateGradient(color1, color2, rotation)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, color1),
+        ColorSequenceKeypoint.new(1, color2)
+    }
+    gradient.Rotation = rotation or 45
+    return gradient
+end
+
+local function AnimateHover(object, hoverProps, normalProps, tweenInfo)
+    local isHovering = false
+    
+    object.MouseEnter:Connect(function()
+        if not isHovering then
+            isHovering = true
+            TweenService:Create(object, tweenInfo or Animations.Fast, hoverProps):Play()
+        end
+    end)
+    
+    object.MouseLeave:Connect(function()
+        if isHovering then
+            isHovering = false
+            TweenService:Create(object, tweenInfo or Animations.Fast, normalProps):Play()
+        end
+    end)
+end
+
+-- Main Library Constructor
+function Mint.new(title)
+    local self = setmetatable({}, Mint)
+    self.tabs = {}
+    self.currentTab = nil
+    self.isMinimized = false
+    self.themedElements = {} -- Track elements for theme updates
+
+    -- Helper function to register themed elements
+    local function registerThemedElement(element, properties)
+        table.insert(self.themedElements, {element = element, properties = properties})
+    end
+
+    -- Create ScreenGui
+    self.ScreenGui = Instance.new("ScreenGui")
+    self.ScreenGui.Name = "MintUI"
+    self.ScreenGui.ResetOnSpawn = false
+    self.ScreenGui.Parent = PlayerGui
+    
+    -- Main Frame
+    self.MainFrame = Instance.new("Frame")
+    self.MainFrame.Name = "MainFrame"
+    self.MainFrame.Size = UDim2.new(0, 490, 0, 400)
+    self.MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    self.MainFrame.BackgroundColor3 = _G.Theme.Background
+    self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.Parent = self.ScreenGui
+    registerThemedElement(self.MainFrame, {BackgroundColor3 = "Background"})
+    CreateCorner(8).Parent = self.MainFrame
+-- Clean Particle System - Toggleable with global variable
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+-- Global toggle variable
+_G.EnableParticles = false
+
+-- Particle spawn function
+local function CreateParticle(parent)
+	if not _G.EnableParticles then return end
+
+	local particle = Instance.new("Frame")
+	particle.BackgroundColor3 = _G.Theme.Accent:Lerp(_G.Theme.Secondary, math.random() * 0.3)
+
+	local shapeType = math.random(1, 3)
+	local corner = Instance.new("UICorner")
+
+	if shapeType == 1 then
+		particle.Size = UDim2.new(0, 2, 0, 2)
+		corner.CornerRadius = UDim.new(1, 0)
+	elseif shapeType == 2 then
+		particle.Size = UDim2.new(0, math.random(6, 12), 0, 1)
+		corner.CornerRadius = UDim.new(0, 1)
+	else
+		particle.Size = UDim2.new(0, math.random(1, 3), 0, math.random(1, 3))
+		corner.CornerRadius = UDim.new(0, 1)
+	end
+
+	corner.Parent = particle
+
+	particle.Position = UDim2.new(math.random() * 1.2 - 0.1, 0, math.random() * 1.2 - 0.1, 0)
+	particle.BackgroundTransparency = math.random(30, 70) / 100
+	particle.BorderSizePixel = 0
+	particle.ZIndex = 1
+	particle.Parent = parent
+
+	local floatTime = math.random(20)
+	local targetPos = UDim2.new(
+		math.random() * 1.4 - 0.2, 0,
+		math.random() * 1.4 - 0.2, 0
+	)
+
+	local float = TweenService:Create(
+		particle,
+		TweenInfo.new(floatTime, Enum.EasingStyle.Linear),
+		{ Position = targetPos }
+	)
+
+	local rotation
+	if shapeType == 2 then
+		rotation = TweenService:Create(
+			particle,
+			TweenInfo.new(floatTime, Enum.EasingStyle.Linear),
+			{ Rotation = math.random(-180, 180) }
+		)
+	end
+
+	local midLifeFade = TweenService:Create(
+		particle,
+		TweenInfo.new(floatTime * 0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+		{ BackgroundTransparency = math.random(20, 80) / 100 }
+	)
+
+	float:Play()
+	midLifeFade:Play()
+	if rotation then rotation:Play() end
+
+	float.Completed:Connect(function()
+		particle:Destroy()
+	end)
+
+	table.insert(self.themedElements, {
+		element = particle,
+		properties = {
+			BackgroundColor3 = function()
+				return _G.Theme.Accent:Lerp(_G.Theme.Secondary, math.random() * 0.3)
+			end
+		}
+	})
+end
+
+-- Particle Container Setup
+local particleContainer = Instance.new("Frame")
+particleContainer.Name = "ParticleContainer"
+particleContainer.Size = UDim2.new(1, 0, 1, -35)
+particleContainer.Position = UDim2.new(0, 0, 0, 35)
+particleContainer.BackgroundTransparency = 1
+particleContainer.ZIndex = 1
+particleContainer.ClipsDescendants = true
+particleContainer.Parent = self.MainFrame
+
+-- Particle tracking
+local particleCount = 0
+local maxParticles = 25
+local spawnInterval = 0.07
+local lastSpawnTime = 0
+
+-- Initial burst
+if _G.EnableParticles then
+	for i = 1, maxParticles do
+		task.spawn(CreateParticle, particleContainer)
+		particleCount += 1
+	end
+end
+
+-- Continuous spawning
+RunService.Heartbeat:Connect(function(deltaTime)
+	if not _G.EnableParticles then return end
+	if not self.MainFrame.Parent or self.isMinimized then return end
+
+	lastSpawnTime += deltaTime
+	if lastSpawnTime >= spawnInterval and particleCount < maxParticles then
+		task.spawn(CreateParticle, particleContainer)
+		particleCount += 1
+		lastSpawnTime = 0
+	end
+end)
+
+-- Track particle removal
+particleContainer.ChildRemoved:Connect(function()
+	particleCount -= 1
+end)
+function _G.ToggleParticles(enabled)
+	_G.EnableParticles = enabled
+
+	if not enabled then
+		for _, child in ipairs(particleContainer:GetChildren()) do
+			child:Destroy()
+		end
+		particleCount = 0
+	end
+end
+    local mainStroke = CreateStroke(_G.Theme.BorderLight, 1)
+    mainStroke.Parent = self.MainFrame
+    registerThemedElement(mainStroke, {Color = "BorderLight"})
+    
+    -- Subtle shadow
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 16, 1, 16)
+    shadow.Position = UDim2.new(0, -8, 0, -8)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/Controls/DropShadow.png"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.6
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(12, 12, 12, 12)
+    shadow.ZIndex = -1
+    shadow.Parent = self.MainFrame
+    
+    -- Header
+    self.Header = Instance.new("Frame")
+    self.Header.Name = "Header"
+    self.Header.Size = UDim2.new(1, 0, 0, 35)
+    self.Header.BackgroundColor3 = _G.Theme.Tertiary
+    self.Header.BorderSizePixel = 0
+    self.Header.Parent = self.MainFrame
+    registerThemedElement(self.Header, {BackgroundColor3 = "Tertiary"})
+    
+    CreateOnlyTopCorner(8, self.Header)
+    local headerBottomLeft = self.Header:FindFirstChildWhichIsA("Frame", true)
+    local headerBottomRight = headerBottomLeft and headerBottomLeft:FindFirstChildWhichIsA("Frame", true)
+    if headerBottomLeft then
+        registerThemedElement(headerBottomLeft, {BackgroundColor3 = "Tertiary"})
+    end
+    if headerBottomRight then
+        registerThemedElement(headerBottomRight, {BackgroundColor3 = "Tertiary"})
+    end
+
+    -- Title
+    self.TitleLabel = Instance.new("TextLabel")
+    self.TitleLabel.Name = "Title"
+    self.TitleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+    self.TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+    self.TitleLabel.BackgroundTransparency = 1
+    self.TitleLabel.Text = title or "Mint Technology"
+    self.TitleLabel.TextColor3 = _G.Theme.Accent
+    self.TitleLabel.TextSize = 15
+    self.TitleLabel.Font = Enum.Font.GothamBold
+    self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    self.TitleLabel.Parent = self.Header
+    registerThemedElement(self.TitleLabel, {TextColor3 = "Accent"})
+    
+    -- Minimize Button
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Name = "MinimizeButton"
+    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+    minimizeButton.Position = UDim2.new(1, -80, 0.5, -15)
+    minimizeButton.BackgroundColor3 = _G.Theme.Secondary
+    minimizeButton.BorderSizePixel = 0
+    minimizeButton.Text = "−"
+    minimizeButton.TextColor3 = _G.Theme.Text
+    minimizeButton.TextSize = 18
+    minimizeButton.Font = Enum.Font.GothamBold
+    minimizeButton.Parent = self.Header
+    registerThemedElement(minimizeButton, {BackgroundColor3 = "Secondary", TextColor3 = "Text"})
+    
+    CreateCorner(6).Parent = minimizeButton
+    local minimizeStroke = CreateStroke(_G.Theme.BorderLight, 1)
+    minimizeStroke.Parent = minimizeButton
+    registerThemedElement(minimizeStroke, {Color = "BorderLight"})
+    AnimateHover(minimizeButton, {BackgroundColor3 = _G.Theme.Secondary:Lerp(_G.Theme.Accent, 0.2)}, {BackgroundColor3 = _G.Theme.Secondary})
+    
+    minimizeButton.MouseButton1Click:Connect(function()
+        self.isMinimized = not self.isMinimized
+        local targetSize = self.isMinimized and UDim2.new(0, self.MainFrame.Size.X.Offset, 0, 35) or UDim2.new(0, self.MainFrame.Size.X.Offset, 0, self.MainFrame.Size.Y.Offset)
+        TweenService:Create(self.MainFrame, Animations.Medium, {Size = targetSize}):Play()
+        self.TabContainer.Visible = not self.isMinimized
+        self.ContentContainer.Visible = not self.isMinimized
+        minimizeButton.Text = self.isMinimized and "+" or "−"
+    end)
+    
+    -- Close Button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -40, 0.5, -15)
+    closeButton.BackgroundColor3 = _G.Theme.Error
+    closeButton.BorderSizePixel = 0
+    closeButton.Text = "×"
+    closeButton.TextColor3 = _G.Theme.Text
+    closeButton.TextSize = 18
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = self.Header
+    registerThemedElement(closeButton, {BackgroundColor3 = "Error", TextColor3 = "Text"})
+    
+    CreateCorner(6).Parent = closeButton
+    local closeStroke = CreateStroke(_G.Theme.BorderLight, 1)
+    closeStroke.Parent = closeButton
+    registerThemedElement(closeStroke, {Color = "BorderLight"})
+    AnimateHover(closeButton, {BackgroundColor3 = _G.Theme.Error:Lerp(_G.Theme.Accent, 0.2)}, {BackgroundColor3 = _G.Theme.Error})
+    
+    closeButton.MouseButton1Click:Connect(function()
+        self.ScreenGui:Destroy()
+    end)
+    
+    -- Resize Handle
+    local resizeHandle = Instance.new("TextButton")
+    resizeHandle.Name = "ResizeHandle"
+    resizeHandle.Size = UDim2.new(0, 16, 0, 16)
+    resizeHandle.Position = UDim2.new(1, -16, 1, -16)
+    resizeHandle.BackgroundTransparency = 0.99
+    resizeHandle.BackgroundColor3 = _G.Theme.Border
+    resizeHandle.BorderSizePixel = 0
+    resizeHandle.Text = ""
+    resizeHandle.Parent = self.MainFrame
+    registerThemedElement(resizeHandle, {BackgroundColor3 = "Border"})
+    
+    CreateCorner(6).Parent = resizeHandle
+    AnimateHover(resizeHandle, {BackgroundColor3 = _G.Theme.Accent}, {BackgroundColor3 = _G.Theme.Border})
+    
+    -- Tab Container
+self.TabContainer = Instance.new("ScrollingFrame")
+self.TabContainer.Name = "TabContainer"
+self.TabContainer.Size = UDim2.new(1, 0, 0, 35)
+self.TabContainer.Position = UDim2.new(0, 0, 0, 35)
+self.TabContainer.BackgroundColor3 = _G.Theme.Tertiary
+self.TabContainer.BorderSizePixel = 0
+self.TabContainer.ScrollBarThickness = 0
+self.TabContainer.ScrollingDirection = Enum.ScrollingDirection.X
+self.TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+self.TabContainer.Parent = self.MainFrame
+registerThemedElement(self.TabContainer, {BackgroundColor3 = "Tertiary"})
+local tabStroke = CreateStroke(_G.Theme.Border, 1)
+tabStroke.Parent = self.TabContainer
+registerThemedElement(tabStroke, {Color = "Border"})
+CreatePadding(5, 5, 10, 10).Parent = self.TabContainer
+    -- Tab Layout
+-- Tab Layout
+self.TabLayout = Instance.new("UIListLayout")
+self.TabLayout.FillDirection = Enum.FillDirection.Horizontal
+self.TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+self.TabLayout.Padding = UDim.new(0, 5)
+self.TabLayout.Parent = self.TabContainer
+
+-- Update canvas size when tabs are added/removed
+self.TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    self.TabContainer.CanvasSize = UDim2.new(0, self.TabLayout.AbsoluteContentSize.X + 20, 0, 0)
+end)
+    -- Content Container
+    self.ContentContainer = Instance.new("Frame")
+    self.ContentContainer.Name = "ContentContainer"
+    self.ContentContainer.Size = UDim2.new(1, 0, 1, -70)
+    self.ContentContainer.Position = UDim2.new(0, 0, 0, 70)
+    self.ContentContainer.BackgroundTransparency = 1
+    self.ContentContainer.Parent = self.MainFrame
+    
+    self:MakeDraggable()
+    self:MakeResizable()
+    
+    return self
+end
+
+-- Update Theme Function - Complete Rewrite
+function Mint:UpdateTheme()
+    -- Update main frame and header
+    if self.MainFrame and self.MainFrame.Parent then
+        self.MainFrame.BackgroundColor3 = _G.Theme.Background
+        
+        -- Update main frame stroke
+        local mainStroke = self.MainFrame:FindFirstChildOfClass("UIStroke")
+        if mainStroke then
+            mainStroke.Color = _G.Theme.BorderLight
+        end
+    end
+    
+    if self.Header and self.Header.Parent then
+        self.Header.BackgroundColor3 = _G.Theme.Tertiary
+        
+        -- Update ALL frames in header to fix the corner squares
+        local function updateHeaderFrames(parent)
+            for _, child in pairs(parent:GetChildren()) do
+                if child:IsA("Frame") then
+                    -- Update any frame that looks like a corner frame
+                    if child.Name == "" or child.Size.X.Offset <= 10 or child.Size.Y.Offset <= 10 then
+                        child.BackgroundColor3 = _G.Theme.Tertiary
+                    end
+                    -- Recursively check nested frames
+                    updateHeaderFrames(child)
+                end
+            end
+        end
+        
+        updateHeaderFrames(self.Header)
+        
+        -- Also check descendants to be absolutely sure
+        for _, descendant in pairs(self.Header:GetDescendants()) do
+            if descendant:IsA("Frame") and descendant ~= self.Header then
+                -- If it's a small frame or unnamed frame, it's likely a corner frame
+                if descendant.Name == "" or 
+                   (descendant.Size.X.Offset <= 10 and descendant.Size.Y.Offset <= 10) or
+                   (descendant.AnchorPoint.Y == 1) then -- Bottom anchored frames are likely corners
+                    descendant.BackgroundColor3 = _G.Theme.Tertiary
+                end
+            end
+        end
+    end
+    
+    -- Update title
+    if self.TitleLabel and self.TitleLabel.Parent then
+        self.TitleLabel.TextColor3 = _G.Theme.Accent
+    end
+    
+    -- Update header buttons
+    local minimizeButton = self.Header:FindFirstChild("MinimizeButton")
+    if minimizeButton then
+        minimizeButton.BackgroundColor3 = _G.Theme.Secondary
+        minimizeButton.TextColor3 = _G.Theme.Text
+        local minimizeStroke = minimizeButton:FindFirstChildOfClass("UIStroke")
+            -- Update minimize button hover
+            -- Disconnect old hover connections
+            for _, connection in pairs(getconnections(minimizeButton.MouseEnter) or {}) do
+                if connection.Function then
+                    connection:Disconnect()
+                end
+            end
+            for _, connection in pairs(getconnections(minimizeButton.MouseLeave) or {}) do
+                if connection.Function then
+                    connection:Disconnect()
+                end
+            end
+            
+            -- Re-establish hover with current theme
+            local minIsHovering = false
+            minimizeButton.MouseEnter:Connect(function()
+                if not minIsHovering then
+                    minIsHovering = true
+                    TweenService:Create(minimizeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Secondary:Lerp(_G.Theme.Accent, 0.2)}):Play()
+                end
+            end)
+            
+            minimizeButton.MouseLeave:Connect(function()
+                if minIsHovering then
+                    minIsHovering = false
+                    TweenService:Create(minimizeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Secondary}):Play()
+                end
+            end)
+    end
+    
+    local closeButton = self.Header:FindFirstChild("CloseButton")
+    if closeButton then
+        closeButton.BackgroundColor3 = _G.Theme.Error
+        closeButton.TextColor3 = _G.Theme.Text
+        local closeStroke = closeButton:FindFirstChildOfClass("UIStroke")
+            -- Update close button hover
+            -- Disconnect old hover connections
+            for _, connection in pairs(getconnections(closeButton.MouseEnter) or {}) do
+                if connection.Function then
+                    connection:Disconnect()
+                end
+            end
+            for _, connection in pairs(getconnections(closeButton.MouseLeave) or {}) do
+                if connection.Function then
+                    connection:Disconnect()
+                end
+            end
+            
+            -- Re-establish hover with current theme
+            local closeIsHovering = false
+            closeButton.MouseEnter:Connect(function()
+                if not closeIsHovering then
+                    closeIsHovering = true
+                    TweenService:Create(closeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Error:Lerp(_G.Theme.Accent, 0.2)}):Play()
+                end
+            end)
+            
+            closeButton.MouseLeave:Connect(function()
+                if closeIsHovering then
+                    closeIsHovering = false
+                    TweenService:Create(closeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Error}):Play()
+                end
+            end)
+    end
+    
+    -- Update resize handle
+    local resizeHandle = self.MainFrame:FindFirstChild("ResizeHandle")
+        -- Update resize handle hover
+        -- Disconnect old hover connections
+        for _, connection in pairs(getconnections(resizeHandle.MouseEnter) or {}) do
+            if connection.Function then
+                connection:Disconnect()
+            end
+        end
+        for _, connection in pairs(getconnections(resizeHandle.MouseLeave) or {}) do
+            if connection.Function then
+                connection:Disconnect()
+            end
+        end
+        
+        -- Re-establish hover with current theme
+        local resizeIsHovering = false
+        resizeHandle.MouseEnter:Connect(function()
+            if not resizeIsHovering then
+                resizeIsHovering = true
+                TweenService:Create(resizeHandle, Animations.Fast, {BackgroundColor3 = _G.Theme.Accent}):Play()
+            end
+        end)
+        
+        resizeHandle.MouseLeave:Connect(function()
+            if resizeIsHovering then
+                resizeIsHovering = false
+                TweenService:Create(resizeHandle, Animations.Fast, {BackgroundColor3 = _G.Theme.Border}):Play()
+            end
+        end)
+    
+    -- Update tab container
+if self.TabContainer and self.TabContainer.Parent then
+    self.TabContainer.BackgroundColor3 = _G.Theme.Tertiary
+    local tabStroke = self.TabContainer:FindFirstChildOfClass("UIStroke")
+    if tabStroke then
+        tabStroke.Color = _G.Theme.BorderLight
+    end
+end
+    
+    -- Update all tabs and their content
+    for _, tab in pairs(self.tabs or {}) do
+        -- Update tab button
+        if tab.button and tab.button.Parent then
+            -- Disconnect existing hover connections
+            for _, connection in pairs(getconnections(tab.button.MouseEnter) or {}) do
+                if connection.Function then
+                    connection:Disconnect()
+                end
+            end
+            for _, connection in pairs(getconnections(tab.button.MouseLeave) or {}) do
+                if connection.Function then
+                    connection:Disconnect()
+                end
+            end
+            
+            -- Set colors based on active state
+            if tab.active then
+                tab.button.BackgroundColor3 = _G.Theme.Accent
+                tab.button.TextColor3 = _G.Theme.Background
+            else
+                tab.button.BackgroundColor3 = _G.Theme.Secondary
+                tab.button.TextColor3 = _G.Theme.TextSecondary
+            end
+            
+            -- Re-establish hover animations
+            local isHovering = false
+            tab.button.MouseEnter:Connect(function()
+                if not tab.active and not isHovering then
+                    isHovering = true
+                    TweenService:Create(tab.button, Animations.Fast, {
+                        BackgroundColor3 = _G.Theme.Accent,
+                        TextColor3 = _G.Theme.Background
+                    }):Play()
+                end
+            end)
+            
+            tab.button.MouseLeave:Connect(function()
+                if not tab.active and isHovering then
+                    isHovering = false
+                    TweenService:Create(tab.button, Animations.Fast, {
+                        BackgroundColor3 = _G.Theme.Secondary,
+                        TextColor3 = _G.Theme.TextSecondary
+                    }):Play()
+                end
+            end)
+        end
+        
+        -- Update tab content scrollbars
+        if tab.leftColumn then
+            tab.leftColumn.ScrollBarImageColor3 = _G.Theme.Accent
+        end
+        if tab.rightColumn then
+            tab.rightColumn.ScrollBarImageColor3 = _G.Theme.Accent
+        end
+        
+        -- Update all components in the tab
+        if tab.contentFrame then
+            self:UpdateComponentsInFrame(tab.contentFrame)
+        end
+    end
+end
+
+-- Helper function to update all components in a frame
+function Mint:UpdateComponentsInFrame(frame)
+    for _, child in pairs(frame:GetDescendants()) do
+        -- Update Labels
+        if child.Name == "MintLabel" and child:IsA("TextLabel") then
+            child.TextColor3 = _G.Theme.Text
+        end
+        
+        -- Update Buttons
+       if child.Name == "MintButton" and child:IsA("Frame") then
+    child.BackgroundColor3 = _G.Theme.Secondary
+    
+    -- Update button stroke
+    local stroke = child:FindFirstChildOfClass("UIStroke")
+    if stroke then
+        stroke.Color = _G.Theme.Border
+    end
+    
+    -- Update text label
+    local textLabel = child:FindFirstChildOfClass("TextLabel")
+    if textLabel then
+        textLabel.TextColor3 = _G.Theme.Text
+    end
+    
+    -- Update click button and hover animations
+    local clickButton = child:FindFirstChildOfClass("TextButton")
+    if clickButton then
+        -- Disconnect old hover connections
+        for _, connection in pairs(getconnections(clickButton.MouseEnter) or {}) do
+            if connection.Function then
+                connection:Disconnect()
+            end
+        end
+        for _, connection in pairs(getconnections(clickButton.MouseLeave) or {}) do
+            if connection.Function then
+                connection:Disconnect()
+            end
+        end
+        
+        -- Re-establish hover animations
+        local isHovering = false
+        clickButton.MouseEnter:Connect(function()
+            if not isHovering then
+                isHovering = true
+                TweenService:Create(child, Animations.Fast, {BackgroundColor3 = _G.Theme.Accent}):Play()
+                if textLabel then
+                    TweenService:Create(textLabel, Animations.Fast, {TextColor3 = _G.Theme.Background}):Play()
+                end
+            end
+        end)
+        
+        clickButton.MouseLeave:Connect(function()
+            if isHovering then
+                isHovering = false
+                TweenService:Create(child, Animations.Fast, {BackgroundColor3 = _G.Theme.Secondary}):Play()
+                if textLabel then
+                    TweenService:Create(textLabel, Animations.Fast, {TextColor3 = _G.Theme.Text}):Play()
+                end
+            end
+        end)
+    end
+end
+        -- Update Toggle components
+        if child.Name == "MintToggle" and child:IsA("Frame") then
+            child.BackgroundColor3 = _G.Theme.Secondary
+            local stroke = child:FindFirstChildOfClass("UIStroke")
+            if stroke then
+                stroke.Color = _G.Theme.Border
+            end
+            
+            -- Update toggle label
+            local label = child:FindFirstChildOfClass("TextLabel")
+            if label then
+                label.TextColor3 = _G.Theme.Text
+            end
+            
+            -- Update toggle button and indicator
+            local toggleButton = child:FindFirstChild("ToggleButton")
+            if toggleButton then
+                -- Get current state from indicator position
+                local indicator = toggleButton:FindFirstChild("Indicator")
+                if indicator then
+                    local isToggled = indicator.Position.X.Scale > 0.5
+                    toggleButton.BackgroundColor3 = isToggled and _G.Theme.Accent or _G.Theme.Border
+                    indicator.BackgroundColor3 = _G.Theme.Text
+                end
+            end
+        end
+        
+        -- Update Slider components
+        if child.Name == "MintSlider" and child:IsA("Frame") then
+            -- Update slider labels
+            for _, label in pairs(child:GetChildren()) do
+                if label:IsA("TextLabel") then
+                    if label.Name == "" and label.TextXAlignment == Enum.TextXAlignment.Left then
+                        label.TextColor3 = _G.Theme.Text
+                    elseif label.TextXAlignment == Enum.TextXAlignment.Right then
+                        label.TextColor3 = _G.Theme.Accent
+                    end
+                end
+            end
+            
+            -- Update slider bar
+            local sliderBar = child:FindFirstChild("SliderBar")
+            if sliderBar then
+                sliderBar.BackgroundColor3 = _G.Theme.Border
+                
+                local sliderFill = sliderBar:FindFirstChild("SliderFill")
+                if sliderFill then
+                    sliderFill.BackgroundColor3 = _G.Theme.Accent
+                    local gradient = sliderFill:FindFirstChildOfClass("UIGradient")
+                    if gradient then
+                        gradient.Color = ColorSequence.new{
+                            ColorSequenceKeypoint.new(0, _G.Theme.Accent),
+                            ColorSequenceKeypoint.new(1, _G.Theme.AccentDark)
+                        }
+                    end
+                end
+                
+                local sliderButton = sliderBar:FindFirstChild("SliderButton")
+                if sliderButton then
+                    sliderButton.BackgroundColor3 = _G.Theme.Text
+                end
+            end
+        end
+        
+        -- Update TextBox components
+        if child.Name == "MintTextBox" and child:IsA("Frame") then
+            child.BackgroundColor3 = _G.Theme.Secondary
+            local stroke = child:FindFirstChildOfClass("UIStroke")
+            if stroke then
+                stroke.Color = _G.Theme.Border
+            end
+            
+            local textbox = child:FindFirstChildOfClass("TextBox")
+            if textbox then
+                textbox.TextColor3 = _G.Theme.Text
+                textbox.PlaceholderColor3 = _G.Theme.TextDark
+            end
+        end
+        
+        -- Update Section components
+        if child.Name == "MintSection" and child:IsA("Frame") then
+            local label = child:FindFirstChildOfClass("TextLabel")
+            if label then
+                label.TextColor3 = _G.Theme.Accent
+            end
+            
+            for _, sectionChild in pairs(child:GetChildren()) do
+                if sectionChild:IsA("Frame") and sectionChild.Size.Y.Offset == 1 then
+                    sectionChild.BackgroundColor3 = _G.Theme.Border
+                end
+            end
+        end
+        
+        -- Update Dropdown components
+        if child.Name == "MintDropdown" and child:IsA("Frame") then
+            child.BackgroundColor3 = _G.Theme.Secondary
+            local stroke = child:FindFirstChildOfClass("UIStroke")
+            if stroke then
+                stroke.Color = _G.Theme.Border
+            end
+            
+            local button = child:FindFirstChildOfClass("TextButton")
+            if button then
+                button.TextColor3 = _G.Theme.Text
+            end
+            
+            local arrow = child:FindFirstChildOfClass("TextLabel")
+            if arrow and arrow.Text == "▼" then
+                arrow.TextColor3 = _G.Theme.TextDark
+            end
+            
+            -- Update options frame if it exists
+            local optionsFrame = child:FindFirstChild("OptionsFrame")
+            if optionsFrame then
+                optionsFrame.BackgroundColor3 = _G.Theme.Tertiary
+                local optionStroke = optionsFrame:FindFirstChildOfClass("UIStroke")
+                if optionStroke then
+                    optionStroke.Color = _G.Theme.BorderLight
+                end
+                
+                for _, optionButton in pairs(optionsFrame:GetChildren()) do
+                    if optionButton:IsA("TextButton") then
+                        optionButton.BackgroundColor3 = _G.Theme.Tertiary
+                        optionButton.TextColor3 = _G.Theme.Text
+                    end
+                end
+            end
+        end
+        
+        -- Update ColorPicker components
+        if child.Name == "MintColorPicker" and child:IsA("Frame") then
+            child.BackgroundColor3 = _G.Theme.Secondary
+            local stroke = child:FindFirstChildOfClass("UIStroke")
+            if stroke then
+                stroke.Color = _G.Theme.Border
+            end
+            
+            local label = child:FindFirstChildOfClass("TextLabel")
+            if label then
+                label.TextColor3 = _G.Theme.Text
+            end
+            
+            local colorPreview = child:FindFirstChildOfClass("TextButton")
+            if colorPreview then
+                local previewStroke = colorPreview:FindFirstChildOfClass("UIStroke")
+                if previewStroke then
+                    previewStroke.Color = _G.Theme.BorderLight
+                end
+            end
+        end
+        
+        -- Update Keybind components
+        if child.Name == "MintKeybind" and child:IsA("Frame") then
+            child.BackgroundColor3 = _G.Theme.Secondary
+            local stroke = child:FindFirstChildOfClass("UIStroke")
+            if stroke then
+                stroke.Color = _G.Theme.Border
+            end
+            
+            local label = child:FindFirstChildOfClass("TextLabel")
+            if label then
+                label.TextColor3 = _G.Theme.Text
+            end
+            
+            local keyButton = child:FindFirstChildOfClass("TextButton")
+            if keyButton then
+                keyButton.BackgroundColor3 = _G.Theme.Tertiary
+                keyButton.TextColor3 = _G.Theme.TextSecondary
+                local keyStroke = keyButton:FindFirstChildOfClass("UIStroke")
+                if keyStroke then
+                    keyStroke.Color = _G.Theme.BorderLight
+                end
+            end
+        end
+    end
+end
+-- Make window draggable
+function Mint:MakeDraggable()
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    self.Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = self.MainFrame.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            self.MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- Make window resizable
+function Mint:MakeResizable()
+    local resizing = false
+    local resizeStart = nil
+    local startSize = nil
+    
+    local resizeHandle = self.MainFrame:FindFirstChild("ResizeHandle")
+    
+    resizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = true
+            resizeStart = input.Position
+            startSize = self.MainFrame.Size
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - resizeStart
+            local newWidth = math.clamp(startSize.X.Offset + delta.X, 400, 1000)
+            local newHeight = math.clamp(startSize.Y.Offset + delta.Y, 300, 800)
+            
+            self.MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+            
+            if self.isMinimized then
+                local minimizeButton = self.Header:FindFirstChild("MinimizeButton")
+                if minimizeButton then
+                    minimizeButton.Text = "+"
+                end
+            end
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = false
+        end
+    end)
+end
+
+-- Create Tab
+function Mint:Tab(name)
+    local tab = {
+        name = name,
+        active = false,
+        components = {}
+    }
+    
+    setmetatable(tab, {
+        __index = function(t, k)
+            local componentMethods = {
+                Label = function(...) return Mint.Label(self, t, ...) end,
+                Button = function(...) return Mint.Button(self, t, ...) end,
+                Toggle = function(...) return Mint.Toggle(self, t, ...) end,
+                Slider = function(...) return Mint.Slider(self, t, ...) end,
+                TextBox = function(...) return Mint.TextBox(self, t, ...) end,
+                Section = function(...) return Mint.Section(self, t, ...) end,
+                Dropdown = function(...) return Mint.Dropdown(self, t, ...) end,
+                ColorPicker = function(...) return Mint.ColorPicker(self, t, ...) end,
+                Keybind = function(...) return Mint.Keybind(self, t, ...) end
+            }
+            return componentMethods[k] or Mint[k]
+        end
+    })
+    
+    -- Tab Button
+    tab.button = Instance.new("TextButton")
+    tab.button.Name = name .. "Tab"
+    tab.button.Size = UDim2.new(0, 100, 1, 0)
+    tab.button.BackgroundColor3 = _G.Theme.Secondary
+    tab.button.BorderSizePixel = 0
+    tab.button.Text = name
+    tab.button.TextColor3 = _G.Theme.TextSecondary
+    tab.button.TextSize = 14
+    tab.button.Font = Enum.Font.GothamSemibold
+    tab.button.Parent = self.TabContainer
+    self.themedElements = self.themedElements or {}
+    table.insert(self.themedElements, {element = tab.button, properties = {BackgroundColor3 = tab.active and "Accent" or "Secondary", TextColor3 = tab.active and "Background" or "TextSecondary"}})
+    
+    CreateCorner(5).Parent = tab.button
+    
+    -- Tab Content Frame
+    tab.contentFrame = Instance.new("Frame")
+    tab.contentFrame.Name = name .. "Content"
+    tab.contentFrame.Size = UDim2.new(1, 0, 1, 0)
+    tab.contentFrame.BackgroundTransparency = 1
+    tab.contentFrame.Visible = false
+    tab.contentFrame.Parent = self.ContentContainer
+    
+    -- Two column layout
+    tab.leftColumn = Instance.new("ScrollingFrame")
+    tab.leftColumn.Name = "LeftColumn"
+    tab.leftColumn.Size = UDim2.new(0.48, 0, 1, -10)
+    tab.leftColumn.Position = UDim2.new(0, 10, 0, 5)
+    tab.leftColumn.BackgroundTransparency = 1
+    tab.leftColumn.BorderSizePixel = 0
+    tab.leftColumn.ScrollBarThickness = 3
+    tab.leftColumn.ScrollBarImageColor3 = _G.Theme.Accent
+    tab.leftColumn.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tab.leftColumn.Parent = tab.contentFrame
+    table.insert(self.themedElements, {element = tab.leftColumn, properties = {ScrollBarImageColor3 = "Accent"}})
+    
+    CreatePadding(10).Parent = tab.leftColumn
+    
+    tab.rightColumn = Instance.new("ScrollingFrame")
+    tab.rightColumn.Name = "RightColumn"
+    tab.rightColumn.Size = UDim2.new(0.48, 0, 1, -10)
+    tab.rightColumn.Position = UDim2.new(0.52, 0, 0, 5)
+    tab.rightColumn.BackgroundTransparency = 1
+    tab.rightColumn.BorderSizePixel = 0
+    tab.rightColumn.ScrollBarThickness = 3
+    tab.rightColumn.ScrollBarImageColor3 = _G.Theme.Accent
+    tab.rightColumn.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tab.rightColumn.Parent = tab.contentFrame
+    table.insert(self.themedElements, {element = tab.rightColumn, properties = {ScrollBarImageColor3 = "Accent"}})
+    
+    CreatePadding(10).Parent = tab.rightColumn
+    
+    tab.leftLayout = Instance.new("UIListLayout")
+    tab.leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tab.leftLayout.Padding = UDim.new(0, 8)
+    tab.leftLayout.Parent = tab.leftColumn
+    
+    tab.rightLayout = Instance.new("UIListLayout")
+    tab.rightLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tab.rightLayout.Padding = UDim.new(0, 8)
+    tab.rightLayout.Parent = tab.rightColumn
+    
+    tab.leftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tab.leftColumn.CanvasSize = UDim2.new(0, 0, 0, tab.leftLayout.AbsoluteContentSize.Y + 20)
+    end)
+    
+    tab.rightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tab.rightColumn.CanvasSize = UDim2.new(0, 0, 0, tab.rightLayout.AbsoluteContentSize.Y + 20)
+    end)
+    
+    tab.button.MouseButton1Click:Connect(function()
+        self:SelectTab(name)
+    end)
+    
+    local isHovering = false
+    tab.button.MouseEnter:Connect(function()
+        if not tab.active and not isHovering then
+            isHovering = true
+            TweenService:Create(tab.button, Animations.Fast, {
+                BackgroundColor3 = _G.Theme.Accent,
+                TextColor3 = _G.Theme.Background
+            }):Play()
+        end
+    end)
+    
+    tab.button.MouseLeave:Connect(function()
+        if not tab.active and isHovering then
+            isHovering = false
+            TweenService:Create(tab.button, Animations.Fast, {
+                BackgroundColor3 = _G.Theme.Secondary,
+                TextColor3 = _G.Theme.TextSecondary
+            }):Play()
+        end
+    end)
+    
+    self.tabs[name] = tab
+    
+    if not self.currentTab then
+        self:SelectTab(name)
+    end
+    
+    return tab
+end
+
+-- Select Tab
+-- Select Tab
+function Mint:SelectTab(tabName)
+    -- Deselect current tab
+    if self.currentTab and self.tabs[self.currentTab] then
+        local currentTab = self.tabs[self.currentTab]
+        currentTab.active = false
+        currentTab.contentFrame.Visible = false
+        currentTab.button.BackgroundColor3 = _G.Theme.Secondary
+        currentTab.button.TextColor3 = _G.Theme.TextSecondary
+    end
+    
+    -- Select new tab
+    self.currentTab = tabName
+    local tab = self.tabs[tabName]
+    if tab then
+        tab.active = true
+        tab.contentFrame.Visible = true
+        tab.button.BackgroundColor3 = _G.Theme.Accent
+        tab.button.TextColor3 = _G.Theme.Background
+    end
+end
+-- Get current tab
+function Mint:GetCurrentTab()
+    return self.tabs[self.currentTab]
+end
+
+-- Components
+function Mint:Label(window, tab, text, color, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local label = Instance.new("TextLabel")
+    label.Name = "MintLabel"
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Label"
+    label.TextColor3 = color or _G.Theme.Text
+    label.TextSize = 12
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = label, properties = {TextColor3 = color and "Text" or "Text"}})
+    
+    return label
+end
+-- Replace the Button function with this version (cleaner text):
+
+function Mint:Button(window, tab, text, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = "MintButton"
+    buttonFrame.Size = UDim2.new(1, 0, 0, 30)
+    buttonFrame.BackgroundColor3 = _G.Theme.Secondary
+    buttonFrame.BorderSizePixel = 0
+    buttonFrame.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = buttonFrame, properties = {BackgroundColor3 = "Secondary"}})
+    
+    CreateCorner(5).Parent = buttonFrame
+    
+    -- Add stroke
+    local stroke = CreateStroke(_G.Theme.Border)
+    stroke.Parent = buttonFrame
+    table.insert(window.themedElements, {element = stroke, properties = {Color = "Border"}})
+    
+    -- Create invisible button for clicking
+    local clickButton = Instance.new("TextButton")
+    clickButton.Size = UDim2.new(1, 0, 1, 0)
+    clickButton.BackgroundTransparency = 1
+    clickButton.Text = ""  -- No text on the button itself
+    clickButton.Parent = buttonFrame
+    
+    -- Create clean text label
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text or "Button"
+    textLabel.TextColor3 = _G.Theme.Text
+    textLabel.TextSize = 12
+    textLabel.Font = Enum.Font.GothamSemibold
+    textLabel.TextXAlignment = Enum.TextXAlignment.Center
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center
+    textLabel.Parent = buttonFrame
+    table.insert(window.themedElements, {element = textLabel, properties = {TextColor3 = "Text"}})
+    
+    -- Hover animation
+    AnimateHover(clickButton, 
+        {BackgroundColor3 = _G.Theme.Accent}, 
+        {BackgroundColor3 = _G.Theme.Secondary}
+    )
+    
+    -- Also animate text color on hover
+    local isHovering = false
+    clickButton.MouseEnter:Connect(function()
+        if not isHovering then
+            isHovering = true
+            TweenService:Create(buttonFrame, Animations.Fast, {BackgroundColor3 = _G.Theme.Accent}):Play()
+            TweenService:Create(textLabel, Animations.Fast, {TextColor3 = _G.Theme.Background}):Play()
+        end
+    end)
+    
+    clickButton.MouseLeave:Connect(function()
+        if isHovering then
+            isHovering = false
+            TweenService:Create(buttonFrame, Animations.Fast, {BackgroundColor3 = _G.Theme.Secondary}):Play()
+            TweenService:Create(textLabel, Animations.Fast, {TextColor3 = _G.Theme.Text}):Play()
+        end
+    end)
+    
+    if callback then
+        clickButton.MouseButton1Click:Connect(callback)
+    end
+    
+    return buttonFrame
+end
+
+function Mint:Toggle(window, tab, text, default, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Name = "MintToggle"
+    toggleFrame.Size = UDim2.new(1, 0, 0, 30)
+    toggleFrame.BackgroundColor3 = _G.Theme.Secondary
+    toggleFrame.BorderSizePixel = 0
+    toggleFrame.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = toggleFrame, properties = {BackgroundColor3 = "Secondary"}})
+    
+    CreateCorner(5).Parent = toggleFrame
+    local stroke = CreateStroke(_G.Theme.Border)
+    stroke.Parent = toggleFrame
+    table.insert(window.themedElements, {element = stroke, properties = {Color = "Border"}})
+    CreatePadding(10, 10, 10, 10).Parent = toggleFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Toggle"
+    label.TextColor3 = _G.Theme.Text
+    label.TextSize = 12
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = toggleFrame
+    table.insert(window.themedElements, {element = label, properties = {TextColor3 = "Text"}})
+    
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "ToggleButton"
+    toggleButton.Size = UDim2.new(0, 40, 0, 20)
+    toggleButton.Position = UDim2.new(1, -40, 0.5, -10)
+    toggleButton.BackgroundColor3 = default and _G.Theme.Accent or _G.Theme.Border
+    toggleButton.BorderSizePixel = 0
+    toggleButton.Text = ""
+    toggleButton.Parent = toggleFrame
+    table.insert(window.themedElements, {element = toggleButton, properties = {BackgroundColor3 = function() return default and _G.Theme.Accent or _G.Theme.Border end}})
+    
+    CreateCorner(10).Parent = toggleButton
+    
+    local indicator = Instance.new("Frame")
+    indicator.Name = "Indicator"
+    indicator.Size = UDim2.new(0, 16, 0, 16)
+    indicator.Position = default and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+    indicator.BackgroundColor3 = _G.Theme.Text
+    indicator.BorderSizePixel = 0
+    indicator.Parent = toggleButton
+    table.insert(window.themedElements, {element = indicator, properties = {BackgroundColor3 = "Text"}})
+    
+    CreateCorner(8).Parent = indicator
+    
+    local isToggled = default or false
+    
+    toggleButton.MouseButton1Click:Connect(function()
+        isToggled = not isToggled
+        
+        local buttonColor = isToggled and _G.Theme.Accent or _G.Theme.Border
+        local indicatorPos = isToggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        
+        TweenService:Create(toggleButton, Animations.Medium, {BackgroundColor3 = buttonColor}):Play()
+        TweenService:Create(indicator, Animations.Medium, {Position = indicatorPos}):Play()
+        
+        -- Update themedElements for toggle
+        for _, themedElement in ipairs(window.themedElements) do
+            if themedElement.element == toggleButton then
+                themedElement.properties = {BackgroundColor3 = function() return isToggled and _G.Theme.Accent or _G.Theme.Border end}
+            end
+        end
+        
+        if callback then
+            callback(isToggled)
+        end
+    end)
+    
+    return toggleFrame, function() return isToggled end
+end
+
+function Mint:Slider(window, tab, text, min, max, default, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local sliderFrame = Instance.new("Frame")
+    sliderFrame.Name = "MintSlider"
+    sliderFrame.Size = UDim2.new(1, 0, 0, 50)
+    sliderFrame.BackgroundTransparency = 1
+    sliderFrame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Slider"
+    label.TextColor3 = _G.Theme.Text
+    label.TextSize = 12
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = sliderFrame
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = label, properties = {TextColor3 = "Text"}})
+    
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Size = UDim2.new(0, 50, 0, 20)
+    valueLabel.Position = UDim2.new(1, -50, 0, 0)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.Text = tostring(default or min)
+    valueLabel.TextColor3 = _G.Theme.Accent
+    valueLabel.TextSize = 12
+    valueLabel.Font = Enum.Font.GothamSemibold
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    valueLabel.Parent = sliderFrame
+    table.insert(window.themedElements, {element = valueLabel, properties = {TextColor3 = "Accent"}})
+    
+    local sliderBar = Instance.new("Frame")
+    sliderBar.Name = "SliderBar"
+    sliderBar.Size = UDim2.new(1, 0, 0, 6)
+    sliderBar.Position = UDim2.new(0, 0, 1, -12)
+    sliderBar.BackgroundColor3 = _G.Theme.Border
+    sliderBar.BorderSizePixel = 0
+    sliderBar.Parent = sliderFrame
+    table.insert(window.themedElements, {element = sliderBar, properties = {BackgroundColor3 = "Border"}})
+    
+    CreateCorner(3).Parent = sliderBar
+    
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Name = "SliderFill"
+    sliderFill.Size = UDim2.new(0, 0, 1, 0)
+    sliderFill.BackgroundColor3 = _G.Theme.Accent
+    sliderFill.BorderSizePixel = 0
+    sliderFill.Parent = sliderBar
+    table.insert(window.themedElements, {element = sliderFill, properties = {BackgroundColor3 = "Accent"}})
+    
+    CreateCorner(3).Parent = sliderFill
+    local gradient = CreateGradient(_G.Theme.Accent, _G.Theme.AccentDark, 45)
+    gradient.Parent = sliderFill
+    table.insert(window.themedElements, {element = gradient, properties = {Color = function()
+        return ColorSequence.new{
+            ColorSequenceKeypoint.new(0, _G.Theme.Accent),
+            ColorSequenceKeypoint.new(1, _G.Theme.AccentDark)
+        }
+    end}})
+    
+    local sliderButton = Instance.new("TextButton")
+    sliderButton.Name = "SliderButton"
+    sliderButton.Size = UDim2.new(0, 16, 0, 16)
+    sliderButton.Position = UDim2.new(0, -8, 0.5, -8)
+    sliderButton.BackgroundColor3 = _G.Theme.Text
+    sliderButton.BorderSizePixel = 0
+    sliderButton.Text = ""
+    sliderButton.Parent = sliderBar
+    table.insert(window.themedElements, {element = sliderButton, properties = {BackgroundColor3 = "Text"}})
+    
+    CreateCorner(8).Parent = sliderButton
+    
+    local currentValue = default or min
+    local dragging = false
+    
+    local function updateSlider(value)
+        local percentage = (value - min) / (max - min)
+        percentage = math.clamp(percentage, 0, 1)
+        
+        sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+        sliderButton.Position = UDim2.new(percentage, -8, 0.5, -8)
+        valueLabel.Text = string.format("%.1f", value)
+        currentValue = value
+        
+        if callback then
+            callback(currentValue)
+        end
+    end
+    
+    sliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local percentage = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+            local value = min + (max - min) * percentage
+            updateSlider(value)
+        end
+    end)
+    
+    updateSlider(currentValue)
+    
+    return sliderFrame, function() return currentValue end
+end
+
+function Mint:TextBox(window, tab, placeholder, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local textboxFrame = Instance.new("Frame")
+    textboxFrame.Name = "MintTextBox"
+    textboxFrame.Size = UDim2.new(1, 0, 0, 30)
+    textboxFrame.BackgroundColor3 = _G.Theme.Secondary
+    textboxFrame.BorderSizePixel = 0
+    textboxFrame.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = textboxFrame, properties = {BackgroundColor3 = "Secondary"}})
+    
+    CreateCorner(5).Parent = textboxFrame
+    local stroke = CreateStroke(_G.Theme.Border)
+    stroke.Parent = textboxFrame
+    table.insert(window.themedElements, {element = stroke, properties = {Color = "Border"}})
+    
+    local textbox = Instance.new("TextBox")
+    textbox.Size = UDim2.new(1, -20, 1, 0)
+    textbox.Position = UDim2.new(0, 10, 0, 0)
+    textbox.BackgroundTransparency = 1
+    textbox.PlaceholderText = placeholder or "Enter text..."
+    textbox.PlaceholderColor3 = _G.Theme.TextDark
+    textbox.Text = ""
+    textbox.TextColor3 = _G.Theme.Text
+    textbox.TextSize = 12
+    textbox.Font = Enum.Font.Gotham
+    textbox.TextXAlignment = Enum.TextXAlignment.Left
+    textbox.Parent = textboxFrame
+    table.insert(window.themedElements, {element = textbox, properties = {TextColor3 = "Text", PlaceholderColor3 = "TextDark"}})
+    
+    textbox.Focused:Connect(function()
+        TweenService:Create(stroke, Animations.Fast, {Color = _G.Theme.Accent}):Play()
+        for _, themedElement in ipairs(window.themedElements) do
+            if themedElement.element == stroke then
+                themedElement.properties = {Color = "Accent"}
+            end
+        end
+    end)
+    
+    textbox.FocusLost:Connect(function()
+        TweenService:Create(stroke, Animations.Fast, {Color = _G.Theme.Border}):Play()
+        for _, themedElement in ipairs(window.themedElements) do
+            if themedElement.element == stroke then
+                themedElement.properties = {Color = "Border"}
+            end
+        end
+        if callback then
+            callback(textbox.Text)
+        end
+    end)
+    
+    return textbox
+end
+
+function Mint:Section(window, tab, title, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local section = Instance.new("Frame")
+    section.Name = "MintSection"
+    section.Size = UDim2.new(1, 0, 0, 30)
+    section.BackgroundTransparency = 1
+    section.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = title or "Section"
+    label.TextColor3 = _G.Theme.Accent
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = section
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = label, properties = {TextColor3 = "Accent"}})
+    
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.Position = UDim2.new(0, 0, 1, -5)
+    line.BackgroundColor3 = _G.Theme.Border
+    line.BorderSizePixel = 0
+    line.Parent = section
+    table.insert(window.themedElements, {element = line, properties = {BackgroundColor3 = "Border"}})
+    
+    return section
+end
+
+function Mint:Dropdown(window, tab, text, options, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Name = "MintDropdown"
+    dropdownFrame.Size = UDim2.new(1, 0, 0, 30)
+    dropdownFrame.BackgroundColor3 = _G.Theme.Secondary
+    dropdownFrame.BorderSizePixel = 0
+    dropdownFrame.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = dropdownFrame, properties = {BackgroundColor3 = "Secondary"}})
+    
+    CreateCorner(5).Parent = dropdownFrame
+    local stroke = CreateStroke(_G.Theme.Border)
+    stroke.Parent = dropdownFrame
+    table.insert(window.themedElements, {element = stroke, properties = {Color = "Border"}})
+    
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.BackgroundTransparency = 1
+    button.Text = text or "Select Option"
+    button.TextColor3 = _G.Theme.Text
+    button.TextSize = 12
+    button.Font = Enum.Font.Gotham
+    button.TextXAlignment = Enum.TextXAlignment.Left
+    button.Parent = dropdownFrame
+    table.insert(window.themedElements, {element = button, properties = {TextColor3 = "Text"}})
+    
+    CreatePadding(10, 10, 10, 25).Parent = button
+    
+    local arrow = Instance.new("TextLabel")
+    arrow.Size = UDim2.new(0, 15, 1, 0)
+    arrow.Position = UDim2.new(1, -20, 0, 0)
+    arrow.BackgroundTransparency = 1
+    arrow.Text = "▼"
+    arrow.TextColor3 = _G.Theme.TextDark
+    arrow.TextSize = 10
+    arrow.Font = Enum.Font.Gotham
+    arrow.Parent = dropdownFrame
+    table.insert(window.themedElements, {element = arrow, properties = {TextColor3 = "TextDark"}})
+    
+    local isOpen = false
+    local optionsFrame = nil
+    
+    button.MouseButton1Click:Connect(function()
+        if isOpen then
+            if optionsFrame then
+                TweenService:Create(optionsFrame, Animations.Fast, {Size = UDim2.new(1, 0, 0, 0)}):Play()
+                TweenService:Create(arrow, Animations.Fast, {Rotation = 0}):Play()
+                wait(0.15)
+                optionsFrame:Destroy()
+                optionsFrame = nil
+            end
+            isOpen = false
+        else
+            optionsFrame = Instance.new("ScrollingFrame")
+            optionsFrame.Name = "OptionsFrame"
+            optionsFrame.Size = UDim2.new(1, 0, 0, 0)
+            optionsFrame.Position = UDim2.new(0, 0, 1, 2)
+            optionsFrame.BackgroundColor3 = _G.Theme.Tertiary
+            optionsFrame.BorderSizePixel = 0
+            optionsFrame.ZIndex = 100  -- Higher ZIndex to appear above everything
+            optionsFrame.ScrollBarThickness = 4
+            optionsFrame.ScrollBarImageColor3 = _G.Theme.Accent
+            optionsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+            optionsFrame.Parent = dropdownFrame
+            table.insert(window.themedElements, {element = optionsFrame, properties = {BackgroundColor3 = "Tertiary", ScrollBarImageColor3 = "Accent"}})
+            
+            CreateCorner(5).Parent = optionsFrame
+            local optionStroke = CreateStroke(_G.Theme.BorderLight)
+            optionStroke.Parent = optionsFrame
+            table.insert(window.themedElements, {element = optionStroke, properties = {Color = "BorderLight"}})
+            
+            local optionsList = Instance.new("UIListLayout")
+            optionsList.SortOrder = Enum.SortOrder.LayoutOrder
+            optionsList.Parent = optionsFrame
+            
+            for i, option in ipairs(options or {}) do
+                local optionButton = Instance.new("TextButton")
+                optionButton.Size = UDim2.new(1, -8, 0, 26)  -- Account for scrollbar
+                optionButton.BackgroundColor3 = _G.Theme.Tertiary
+                optionButton.BorderSizePixel = 0
+                optionButton.Text = option
+                optionButton.TextColor3 = _G.Theme.Text
+                optionButton.TextSize = 12
+                optionButton.Font = Enum.Font.Gotham
+                optionButton.TextXAlignment = Enum.TextXAlignment.Left
+                optionButton.ZIndex = 101  -- Higher than frame
+                optionButton.Parent = optionsFrame
+                table.insert(window.themedElements, {element = optionButton, properties = {BackgroundColor3 = "Tertiary", TextColor3 = "Text"}})
+                
+                CreatePadding(8, 8, 12, 12).Parent = optionButton
+                AnimateHover(optionButton, {BackgroundColor3 = _G.Theme.Accent, TextColor3 = _G.Theme.Background}, {BackgroundColor3 = _G.Theme.Tertiary, TextColor3 = _G.Theme.Text})
+                
+                optionButton.MouseButton1Click:Connect(function()
+                    button.Text = option
+                    isOpen = false
+                    TweenService:Create(optionsFrame, Animations.Fast, {Size = UDim2.new(1, 0, 0, 0)}):Play()
+                    TweenService:Create(arrow, Animations.Fast, {Rotation = 0}):Play()
+                    wait(0.15)
+                    optionsFrame:Destroy()
+                    optionsFrame = nil
+                    
+                    if callback then
+                        callback(option, i)
+                    end
+                end)
+            end
+            
+            -- Calculate proper height with max height limit
+            local totalHeight = #options * 26
+            local maxHeight = 200  -- Maximum dropdown height
+            local finalHeight = math.min(totalHeight, maxHeight)
+            
+            -- Set canvas size for scrolling
+            optionsFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+            
+            -- Update canvas size when layout changes
+            optionsList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                optionsFrame.CanvasSize = UDim2.new(0, 0, 0, optionsList.AbsoluteContentSize.Y)
+            end)
+            
+            TweenService:Create(optionsFrame, Animations.Medium, {Size = UDim2.new(1, 0, 0, finalHeight)}):Play()
+            TweenService:Create(arrow, Animations.Fast, {Rotation = 180}):Play()
+            isOpen = true
+        end
+    end)
+    
+    return dropdownFrame
+end
+function Mint:ColorPicker(window, tab, text, defaultColor, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local colorFrame = Instance.new("Frame")
+    colorFrame.Name = "MintColorPicker"
+    colorFrame.Size = UDim2.new(1, 0, 0, 30)
+    colorFrame.BackgroundColor3 = _G.Theme.Secondary
+    colorFrame.BorderSizePixel = 0
+    colorFrame.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = colorFrame, properties = {BackgroundColor3 = "Secondary"}})
+    
+    CreateCorner(5).Parent = colorFrame
+    local stroke = CreateStroke(_G.Theme.Border)
+    stroke.Parent = colorFrame
+    table.insert(window.themedElements, {element = stroke, properties = {Color = "Border"}})
+    CreatePadding(10).Parent = colorFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Color"
+    label.TextColor3 = _G.Theme.Text
+    label.TextSize = 12
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = colorFrame
+    table.insert(window.themedElements, {element = label, properties = {TextColor3 = "Text"}})
+    
+    local colorPreview = Instance.new("TextButton")
+    colorPreview.Size = UDim2.new(0, 24, 0, 20)
+    colorPreview.Position = UDim2.new(1, -24, 0.5, -10)
+    colorPreview.BackgroundColor3 = defaultColor or _G.Theme.Accent
+    colorPreview.BorderSizePixel = 0
+    colorPreview.Text = ""
+    colorPreview.Parent = colorFrame
+    table.insert(window.themedElements, {element = colorPreview, properties = {BackgroundColor3 = defaultColor and "Accent" or "Accent"}})
+    
+    CreateCorner(4).Parent = colorPreview
+    local previewStroke = CreateStroke(_G.Theme.BorderLight, 1)
+    previewStroke.Parent = colorPreview
+    table.insert(window.themedElements, {element = previewStroke, properties = {Color = "BorderLight"}})
+    
+    local currentColor = defaultColor or _G.Theme.Accent
+    
+    colorPreview.MouseButton1Click:Connect(function()
+        local colors = {
+            _G.Theme.Success,
+            _G.Theme.Error,
+            _G.Theme.Blue,
+            _G.Theme.Purple,
+            _G.Theme.Warning,
+            _G.Theme.Text
+        }
+        
+        local currentIndex = 1
+        for i, color in ipairs(colors) do
+            if color == currentColor then
+                currentIndex = i
+                break
+            end
+        end
+        
+        currentIndex = currentIndex % #colors + 1
+        currentColor = colors[currentIndex]
+        
+        TweenService:Create(colorPreview, Animations.Fast, {BackgroundColor3 = currentColor}):Play()
+        for _, themedElement in ipairs(window.themedElements) do
+            if themedElement.element == colorPreview then
+                themedElement.properties = {BackgroundColor3 = function() return currentColor end}
+            end
+        end
+        
+        if callback then
+            callback(currentColor)
+        end
+    end)
+    
+    return colorFrame, function() return currentColor end
+end
+
+function Mint:Keybind(window, tab, text, defaultKey, callback, side)
+    local parent = (side == "right") and tab.rightColumn or tab.leftColumn
+    
+    local keybindFrame = Instance.new("Frame")
+    keybindFrame.Name = "MintKeybind"
+    keybindFrame.Size = UDim2.new(1, 0, 0, 30)
+    keybindFrame.BackgroundColor3 = _G.Theme.Secondary
+    keybindFrame.BorderSizePixel = 0
+    keybindFrame.Parent = parent
+    window.themedElements = window.themedElements or {}
+    table.insert(window.themedElements, {element = keybindFrame, properties = {BackgroundColor3 = "Secondary"}})
+    
+    CreateCorner(5).Parent = keybindFrame
+    local stroke = CreateStroke(_G.Theme.Border)
+    stroke.Parent = keybindFrame
+    table.insert(window.themedElements, {element = stroke, properties = {Color = "Border"}})
+    CreatePadding(10).Parent = keybindFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Keybind"
+    label.TextColor3 = _G.Theme.Text
+    label.TextSize = 12
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = keybindFrame
+    table.insert(window.themedElements, {element = label, properties = {TextColor3 = "Text"}})
+    
+    local keyButton = Instance.new("TextButton")
+    keyButton.Size = UDim2.new(0, 50, 0, 20)
+    keyButton.Position = UDim2.new(1, -50, 0.5, -10)
+    keyButton.BackgroundColor3 = _G.Theme.Tertiary
+    keyButton.BorderSizePixel = 0
+    keyButton.Text = defaultKey or "NONE"
+    keyButton.TextColor3 = _G.Theme.TextSecondary
+    keyButton.TextSize = 11
+    keyButton.Font = Enum.Font.GothamSemibold
+    keyButton.Parent = keybindFrame
+    table.insert(window.themedElements, {element = keyButton, properties = {BackgroundColor3 = "Tertiary", TextColor3 = "TextSecondary"}})
+    
+    CreateCorner(4).Parent = keyButton
+    local keyStroke = CreateStroke(_G.Theme.BorderLight, 1)
+    keyStroke.Parent = keyButton
+    table.insert(window.themedElements, {element = keyStroke, properties = {Color = "BorderLight"}})
+    
+    local currentKey = defaultKey
+    local listening = false
+    
+    keyButton.MouseButton1Click:Connect(function()
+        if not listening then
+            listening = true
+            keyButton.Text = "..."
+            keyButton.TextColor3 = _G.Theme.Accent
+            for _, themedElement in ipairs(window.themedElements) do
+                if themedElement.element == keyButton then
+                    themedElement.properties = {BackgroundColor3 = "Tertiary", TextColor3 = "Accent"}
+                end
+            end
+            
+            local connection
+            connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard then
+                    local keyName = input.KeyCode.Name
+                    currentKey = keyName
+                    keyButton.Text = keyName
+                    keyButton.TextColor3 = _G.Theme.TextSecondary
+                    for _, themedElement in ipairs(window.themedElements) do
+                        if themedElement.element == keyButton then
+                            themedElement.properties = {BackgroundColor3 = "Tertiary", TextColor3 = "TextSecondary"}
+                        end
+                    end
+                    listening = false
+                    connection:Disconnect()
+                    
+                    if callback then
+                        callback(keyName)
+                    end
+                end
+            end)
+        end
+    end)
+    
+    return keybindFrame, function() return currentKey end
+end
+--[[
+-- Example Implementation
+_G.MintWindow = Mint.new("mint")
+
+-- Create tabs
+local aimTab = _G.MintWindow:Tab("aimbot")
+local visualTab = _G.MintWindow:Tab("visuals")
+local miscTab = _G.MintWindow:Tab("misc")
+
+-- Aimbot tab content
+aimTab:Section("aimbot settings", "left")
+aimTab:Label("smooth Aiming", _G.Theme.Text, "left")
+
+aimTab:Toggle("silent aimbot", false, function(state)
+    print("simbot:", state)
+end, "left")
+aimTab:Toggle("wallbang", false, function(state)
+    print("Wallbang:", state)
+end, "left")
+aimTab:Toggle("wallcheck", false, function(state)
+    print("Wallcheck:", state)
+end, "left")
+aimTab:Slider("fov", 1, 180, 60, function(value)
+    print("fov:", value)
+end, "left")
+
+aimTab:Dropdown("target bone", {"head", "body", "legs"}, function(selected)
+    print("Target:", selected)
+end, "left")
+
+aimTab:Section("triggerbot", "right")
+aimTab:Toggle("triggerbot", false, function(state)
+    print("Triggerbot:", state)
+end, "right")
+
+aimTab:Slider("delay", 0, 500, 50, function(value)
+    print("Delay:", value)
+end, "right")
+
+-- Visuals tab
+visualTab:Section("esp settings", "left")
+visualTab:Toggle("box esp", true, function(state)
+    print("Box ESP:", state)
+end, "left")
+
+visualTab:ColorPicker("Box Color", Color3.fromRGB(230, 235, 240), function(color)
+    print("Box Color:", color)
+end, "left")
+
+visualTab:Section("Chams", "right")
+visualTab:Toggle("Enable Chams", false, function(state)
+    print("Chams:", state)
+end, "right")
+
+-- Misc tab
+miscTab:Section("Movement", "left")
+miscTab:Toggle("Bunny Hop", false, function(state)
+    print("Bunny Hop:", state)
+end, "left")
+
+miscTab:Keybind("Jump Key", "Space", function(key)
+    print("Jump Key:", key)
+end, "left")
+-- Replace all the individual theme buttons with this single dropdown:
+miscTab:Label("Theme Settings", _G.Theme.Text, "left")
+miscTab:Toggle("Particles", false, function(state)
+_G.ToggleParticles(state)
+end, "left")
+miscTab:Dropdown("Select Theme", {
+    "Mint", 
+    "Mocha", 
+    "Midnight", 
+    "Glacier", 
+    "Light", 
+    "Sunset", 
+    "Forest", 
+    "Crimson", 
+    "Ocean", 
+    "Neon", 
+    "Gold", 
+    "Rose", 
+    "Cyber", 
+    "Vintage", 
+    "Toxic"
+}, function(selected)
+    print("Theme selected:", selected)
+    
+    if selected == "Mint" then
+        _G.Theme.Background = Color3.fromRGB(18, 20, 24)
+        _G.Theme.Secondary = Color3.fromRGB(28, 32, 38)
+        _G.Theme.Tertiary = Color3.fromRGB(35, 40, 48)
+        _G.Theme.Accent = Color3.fromRGB(50, 200, 160)
+        _G.Theme.AccentHover = Color3.fromRGB(65, 220, 180)
+        _G.Theme.AccentDark = Color3.fromRGB(40, 160, 130)
+        _G.Theme.Text = Color3.fromRGB(230, 235, 240)
+        _G.Theme.TextSecondary = Color3.fromRGB(150, 160, 170)
+        _G.Theme.TextDark = Color3.fromRGB(100, 110, 120)
+        _G.Theme.Border = Color3.fromRGB(40, 45, 50)
+        _G.Theme.BorderLight = Color3.fromRGB(50, 58, 65)
+        _G.Theme.Success = Color3.fromRGB(50, 200, 160)
+        _G.Theme.Warning = Color3.fromRGB(230, 180, 10)
+        _G.Theme.Error = Color3.fromRGB(230, 60, 50)
+        _G.Theme.Purple = Color3.fromRGB(120, 40, 200)
+        _G.Theme.Blue = Color3.fromRGB(0, 110, 230)
+        
+    elseif selected == "Mocha" then
+        _G.Theme.Background = Color3.fromRGB(30, 25, 20)
+        _G.Theme.Secondary = Color3.fromRGB(45, 35, 25)
+        _G.Theme.Tertiary = Color3.fromRGB(60, 50, 40)
+        _G.Theme.Accent = Color3.fromRGB(160, 100, 60)
+        _G.Theme.AccentHover = Color3.fromRGB(180, 120, 80)
+        _G.Theme.AccentDark = Color3.fromRGB(140, 80, 50)
+        _G.Theme.Text = Color3.fromRGB(240, 230, 220)
+        _G.Theme.TextSecondary = Color3.fromRGB(200, 180, 160)
+        _G.Theme.TextDark = Color3.fromRGB(130, 120, 110)
+        _G.Theme.Border = Color3.fromRGB(70, 60, 50)
+        _G.Theme.BorderLight = Color3.fromRGB(90, 80, 70)
+        _G.Theme.Success = Color3.fromRGB(180, 130, 90)
+        _G.Theme.Warning = Color3.fromRGB(230, 180, 90)
+        _G.Theme.Error = Color3.fromRGB(200, 70, 50)
+        _G.Theme.Purple = Color3.fromRGB(160, 100, 200)
+        _G.Theme.Blue = Color3.fromRGB(100, 120, 160)
+        
+    elseif selected == "Midnight" then
+        _G.Theme.Background = Color3.fromRGB(10, 10, 15)
+        _G.Theme.Secondary = Color3.fromRGB(20, 20, 30)
+        _G.Theme.Tertiary = Color3.fromRGB(30, 30, 45)
+        _G.Theme.Accent = Color3.fromRGB(130, 80, 255)
+        _G.Theme.AccentHover = Color3.fromRGB(150, 100, 255)
+        _G.Theme.AccentDark = Color3.fromRGB(100, 60, 200)
+        _G.Theme.Text = Color3.fromRGB(220, 220, 235)
+        _G.Theme.TextSecondary = Color3.fromRGB(160, 160, 180)
+        _G.Theme.TextDark = Color3.fromRGB(100, 100, 120)
+        _G.Theme.Border = Color3.fromRGB(40, 40, 55)
+        _G.Theme.BorderLight = Color3.fromRGB(50, 50, 70)
+        _G.Theme.Success = Color3.fromRGB(80, 220, 120)
+        _G.Theme.Warning = Color3.fromRGB(255, 200, 80)
+        _G.Theme.Error = Color3.fromRGB(255, 80, 90)
+        _G.Theme.Purple = Color3.fromRGB(180, 100, 255)
+        _G.Theme.Blue = Color3.fromRGB(100, 150, 255)
+        
+    elseif selected == "Glacier" then
+        _G.Theme.Background = Color3.fromRGB(25, 30, 40)
+        _G.Theme.Secondary = Color3.fromRGB(30, 36, 48)
+        _G.Theme.Tertiary = Color3.fromRGB(40, 48, 60)
+        _G.Theme.Accent = Color3.fromRGB(100, 200, 255)
+        _G.Theme.AccentHover = Color3.fromRGB(120, 220, 255)
+        _G.Theme.AccentDark = Color3.fromRGB(80, 180, 230)
+        _G.Theme.Text = Color3.fromRGB(240, 245, 250)
+        _G.Theme.TextSecondary = Color3.fromRGB(180, 190, 200)
+        _G.Theme.TextDark = Color3.fromRGB(120, 130, 140)
+        _G.Theme.Border = Color3.fromRGB(50, 60, 70)
+        _G.Theme.BorderLight = Color3.fromRGB(60, 70, 80)
+        _G.Theme.Success = Color3.fromRGB(0, 180, 180)
+        _G.Theme.Warning = Color3.fromRGB(255, 210, 80)
+        _G.Theme.Error = Color3.fromRGB(255, 100, 100)
+        _G.Theme.Purple = Color3.fromRGB(140, 80, 255)
+        _G.Theme.Blue = Color3.fromRGB(80, 160, 255)
+        
+    elseif selected == "Light" then
+        _G.Theme.Background = Color3.fromRGB(245, 245, 250)
+        _G.Theme.Secondary = Color3.fromRGB(235, 235, 240)
+        _G.Theme.Tertiary = Color3.fromRGB(220, 220, 230)
+        _G.Theme.Accent = Color3.fromRGB(0, 120, 215)
+        _G.Theme.AccentHover = Color3.fromRGB(0, 140, 240)
+        _G.Theme.AccentDark = Color3.fromRGB(0, 100, 190)
+        _G.Theme.Text = Color3.fromRGB(30, 30, 35)
+        _G.Theme.TextSecondary = Color3.fromRGB(90, 90, 100)
+        _G.Theme.TextDark = Color3.fromRGB(130, 130, 140)
+        _G.Theme.Border = Color3.fromRGB(200, 200, 210)
+        _G.Theme.BorderLight = Color3.fromRGB(210, 210, 220)
+        _G.Theme.Success = Color3.fromRGB(0, 200, 100)
+        _G.Theme.Warning = Color3.fromRGB(240, 190, 50)
+        _G.Theme.Error = Color3.fromRGB(230, 70, 70)
+        _G.Theme.Purple = Color3.fromRGB(150, 60, 255)
+        _G.Theme.Blue = Color3.fromRGB(0, 120, 215)
+        
+    elseif selected == "Sunset" then
+        _G.Theme.Background = Color3.fromRGB(25, 15, 20)
+        _G.Theme.Secondary = Color3.fromRGB(40, 25, 30)
+        _G.Theme.Tertiary = Color3.fromRGB(50, 35, 40)
+        _G.Theme.Accent = Color3.fromRGB(255, 120, 80)
+        _G.Theme.AccentHover = Color3.fromRGB(255, 140, 100)
+        _G.Theme.AccentDark = Color3.fromRGB(230, 100, 60)
+        _G.Theme.Text = Color3.fromRGB(250, 240, 235)
+        _G.Theme.TextSecondary = Color3.fromRGB(200, 180, 170)
+        _G.Theme.TextDark = Color3.fromRGB(140, 120, 110)
+        _G.Theme.Border = Color3.fromRGB(60, 45, 50)
+        _G.Theme.BorderLight = Color3.fromRGB(80, 60, 65)
+        _G.Theme.Success = Color3.fromRGB(100, 200, 120)
+        _G.Theme.Warning = Color3.fromRGB(255, 200, 100)
+        _G.Theme.Error = Color3.fromRGB(255, 90, 90)
+        _G.Theme.Purple = Color3.fromRGB(200, 100, 180)
+        _G.Theme.Blue = Color3.fromRGB(100, 150, 220)
+        
+    elseif selected == "Forest" then
+        _G.Theme.Background = Color3.fromRGB(15, 25, 18)
+        _G.Theme.Secondary = Color3.fromRGB(25, 35, 28)
+        _G.Theme.Tertiary = Color3.fromRGB(35, 45, 38)
+        _G.Theme.Accent = Color3.fromRGB(80, 200, 120)
+        _G.Theme.AccentHover = Color3.fromRGB(100, 220, 140)
+        _G.Theme.AccentDark = Color3.fromRGB(60, 180, 100)
+        _G.Theme.Text = Color3.fromRGB(230, 240, 235)
+        _G.Theme.TextSecondary = Color3.fromRGB(180, 200, 185)
+        _G.Theme.TextDark = Color3.fromRGB(120, 140, 125)
+        _G.Theme.Border = Color3.fromRGB(45, 55, 48)
+        _G.Theme.BorderLight = Color3.fromRGB(55, 65, 58)
+        _G.Theme.Success = Color3.fromRGB(100, 220, 140)
+        _G.Theme.Warning = Color3.fromRGB(220, 180, 60)
+        _G.Theme.Error = Color3.fromRGB(220, 80, 80)
+        _G.Theme.Purple = Color3.fromRGB(140, 100, 200)
+        _G.Theme.Blue = Color3.fromRGB(80, 140, 200)
+        
+    elseif selected == "Crimson" then
+        _G.Theme.Background = Color3.fromRGB(20, 10, 15)
+        _G.Theme.Secondary = Color3.fromRGB(35, 20, 25)
+        _G.Theme.Tertiary = Color3.fromRGB(45, 30, 35)
+        _G.Theme.Accent = Color3.fromRGB(220, 60, 80)
+        _G.Theme.AccentHover = Color3.fromRGB(240, 80, 100)
+        _G.Theme.AccentDark = Color3.fromRGB(200, 40, 60)
+        _G.Theme.Text = Color3.fromRGB(240, 230, 235)
+        _G.Theme.TextSecondary = Color3.fromRGB(190, 170, 175)
+        _G.Theme.TextDark = Color3.fromRGB(130, 110, 115)
+        _G.Theme.Border = Color3.fromRGB(55, 40, 45)
+        _G.Theme.BorderLight = Color3.fromRGB(65, 50, 55)
+        _G.Theme.Success = Color3.fromRGB(100, 200, 120)
+        _G.Theme.Warning = Color3.fromRGB(240, 180, 60)
+        _G.Theme.Error = Color3.fromRGB(240, 70, 70)
+        _G.Theme.Purple = Color3.fromRGB(180, 80, 200)
+        _G.Theme.Blue = Color3.fromRGB(80, 120, 220)
+        
+    elseif selected == "Ocean" then
+        _G.Theme.Background = Color3.fromRGB(12, 20, 30)
+        _G.Theme.Secondary = Color3.fromRGB(20, 30, 45)
+        _G.Theme.Tertiary = Color3.fromRGB(30, 40, 55)
+        _G.Theme.Accent = Color3.fromRGB(60, 150, 220)
+        _G.Theme.AccentHover = Color3.fromRGB(80, 170, 240)
+        _G.Theme.AccentDark = Color3.fromRGB(40, 130, 200)
+        _G.Theme.Text = Color3.fromRGB(230, 240, 250)
+        _G.Theme.TextSecondary = Color3.fromRGB(170, 190, 210)
+        _G.Theme.TextDark = Color3.fromRGB(110, 130, 150)
+        _G.Theme.Border = Color3.fromRGB(40, 50, 65)
+        _G.Theme.BorderLight = Color3.fromRGB(50, 60, 75)
+        _G.Theme.Success = Color3.fromRGB(60, 200, 180)
+        _G.Theme.Warning = Color3.fromRGB(220, 180, 80)
+        _G.Theme.Error = Color3.fromRGB(220, 80, 100)
+        _G.Theme.Purple = Color3.fromRGB(140, 80, 220)
+        _G.Theme.Blue = Color3.fromRGB(80, 160, 240)
+        
+    elseif selected == "Neon" then
+        _G.Theme.Background = Color3.fromRGB(8, 8, 12)
+        _G.Theme.Secondary = Color3.fromRGB(15, 15, 20)
+        _G.Theme.Tertiary = Color3.fromRGB(22, 22, 30)
+        _G.Theme.Accent = Color3.fromRGB(0, 255, 150)
+        _G.Theme.AccentHover = Color3.fromRGB(50, 255, 180)
+        _G.Theme.AccentDark = Color3.fromRGB(0, 200, 120)
+        _G.Theme.Text = Color3.fromRGB(240, 255, 250)
+        _G.Theme.TextSecondary = Color3.fromRGB(180, 200, 190)
+        _G.Theme.TextDark = Color3.fromRGB(120, 140, 130)
+        _G.Theme.Border = Color3.fromRGB(30, 35, 40)
+        _G.Theme.BorderLight = Color3.fromRGB(40, 45, 50)
+        _G.Theme.Success = Color3.fromRGB(0, 255, 150)
+        _G.Theme.Warning = Color3.fromRGB(255, 200, 0)
+        _G.Theme.Error = Color3.fromRGB(255, 50, 100)
+        _G.Theme.Purple = Color3.fromRGB(200, 50, 255)
+        _G.Theme.Blue = Color3.fromRGB(50, 150, 255)
+        
+    elseif selected == "Gold" then
+        _G.Theme.Background = Color3.fromRGB(25, 22, 15)
+        _G.Theme.Secondary = Color3.fromRGB(35, 32, 22)
+        _G.Theme.Tertiary = Color3.fromRGB(45, 42, 30)
+        _G.Theme.Accent = Color3.fromRGB(255, 200, 50)
+        _G.Theme.AccentHover = Color3.fromRGB(255, 220, 80)
+        _G.Theme.AccentDark = Color3.fromRGB(220, 170, 30)
+        _G.Theme.Text = Color3.fromRGB(250, 245, 230)
+        _G.Theme.TextSecondary = Color3.fromRGB(200, 190, 170)
+        _G.Theme.TextDark = Color3.fromRGB(140, 130, 110)
+        _G.Theme.Border = Color3.fromRGB(55, 52, 40)
+        _G.Theme.BorderLight = Color3.fromRGB(65, 62, 50)
+        _G.Theme.Success = Color3.fromRGB(150, 200, 80)
+        _G.Theme.Warning = Color3.fromRGB(255, 180, 50)
+        _G.Theme.Error = Color3.fromRGB(220, 80, 60)
+        _G.Theme.Purple = Color3.fromRGB(180, 120, 200)
+        _G.Theme.Blue = Color3.fromRGB(100, 160, 220)
+        
+    elseif selected == "Rose" then
+        _G.Theme.Background = Color3.fromRGB(25, 18, 22)
+        _G.Theme.Secondary = Color3.fromRGB(35, 28, 32)
+        _G.Theme.Tertiary = Color3.fromRGB(45, 38, 42)
+        _G.Theme.Accent = Color3.fromRGB(255, 150, 180)
+        _G.Theme.AccentHover = Color3.fromRGB(255, 170, 200)
+        _G.Theme.AccentDark = Color3.fromRGB(220, 120, 150)
+        _G.Theme.Text = Color3.fromRGB(250, 240, 245)
+        _G.Theme.TextSecondary = Color3.fromRGB(200, 180, 190)
+        _G.Theme.TextDark = Color3.fromRGB(140, 120, 130)
+        _G.Theme.Border = Color3.fromRGB(55, 48, 52)
+        _G.Theme.BorderLight = Color3.fromRGB(65, 58, 62)
+        _G.Theme.Success = Color3.fromRGB(120, 200, 160)
+        _G.Theme.Warning = Color3.fromRGB(240, 180, 120)
+        _G.Theme.Error = Color3.fromRGB(240, 80, 100)
+        _G.Theme.Purple = Color3.fromRGB(200, 120, 200)
+        _G.Theme.Blue = Color3.fromRGB(120, 160, 220)
+        
+    elseif selected == "Cyber" then
+        _G.Theme.Background = Color3.fromRGB(5, 10, 15)
+        _G.Theme.Secondary = Color3.fromRGB(12, 18, 25)
+        _G.Theme.Tertiary = Color3.fromRGB(20, 25, 35)
+        _G.Theme.Accent = Color3.fromRGB(0, 200, 255)
+        _G.Theme.AccentHover = Color3.fromRGB(50, 220, 255)
+        _G.Theme.AccentDark = Color3.fromRGB(0, 170, 220)
+        _G.Theme.Text = Color3.fromRGB(200, 250, 255)
+        _G.Theme.TextSecondary = Color3.fromRGB(150, 200, 220)
+        _G.Theme.TextDark = Color3.fromRGB(100, 150, 170)
+        _G.Theme.Border = Color3.fromRGB(30, 40, 50)
+        _G.Theme.BorderLight = Color3.fromRGB(40, 50, 65)
+        _G.Theme.Success = Color3.fromRGB(0, 255, 150)
+        _G.Theme.Warning = Color3.fromRGB(255, 150, 0)
+        _G.Theme.Error = Color3.fromRGB(255, 0, 100)
+        _G.Theme.Purple = Color3.fromRGB(150, 0, 255)
+        _G.Theme.Blue = Color3.fromRGB(0, 150, 255)
+        
+    elseif selected == "Vintage" then
+        _G.Theme.Background = Color3.fromRGB(35, 30, 25)
+        _G.Theme.Secondary = Color3.fromRGB(45, 40, 35)
+        _G.Theme.Tertiary = Color3.fromRGB(55, 50, 45)
+        _G.Theme.Accent = Color3.fromRGB(180, 140, 100)
+        _G.Theme.AccentHover = Color3.fromRGB(200, 160, 120)
+        _G.Theme.AccentDark = Color3.fromRGB(160, 120, 80)
+        _G.Theme.Text = Color3.fromRGB(240, 230, 220)
+        _G.Theme.TextSecondary = Color3.fromRGB(190, 180, 170)
+        _G.Theme.TextDark = Color3.fromRGB(140, 130, 120)
+        _G.Theme.Border = Color3.fromRGB(65, 60, 55)
+        _G.Theme.BorderLight = Color3.fromRGB(75, 70, 65)
+        _G.Theme.Success = Color3.fromRGB(150, 180, 120)
+        _G.Theme.Warning = Color3.fromRGB(200, 170, 100)
+        _G.Theme.Error = Color3.fromRGB(180, 100, 90)
+        _G.Theme.Purple = Color3.fromRGB(160, 120, 180)
+        _G.Theme.Blue = Color3.fromRGB(120, 150, 180)
+        
+    elseif selected == "Toxic" then
+        _G.Theme.Background = Color3.fromRGB(15, 20, 10)
+        _G.Theme.Secondary = Color3.fromRGB(25, 30, 18)
+        _G.Theme.Tertiary = Color3.fromRGB(35, 40, 25)
+        _G.Theme.Accent = Color3.fromRGB(150, 255, 0)
+        _G.Theme.AccentHover = Color3.fromRGB(170, 255, 50)
+        _G.Theme.AccentDark = Color3.fromRGB(120, 200, 0)
+        _G.Theme.Text = Color3.fromRGB(240, 255, 230)
+        _G.Theme.TextSecondary = Color3.fromRGB(190, 210, 180)
+        _G.Theme.TextDark = Color3.fromRGB(130, 150, 120)
+        _G.Theme.Border = Color3.fromRGB(45, 50, 35)
+        _G.Theme.BorderLight = Color3.fromRGB(55, 60, 45)
+        _G.Theme.Success = Color3.fromRGB(150, 255, 100)
+        _G.Theme.Warning = Color3.fromRGB(255, 200, 0)
+        _G.Theme.Error = Color3.fromRGB(255, 100, 50)
+        _G.Theme.Purple = Color3.fromRGB(200, 100, 255)
+        _G.Theme.Blue = Color3.fromRGB(100, 200, 255)
+    end
+    
+    -- Apply the theme changes
+    _G.MintWindow:UpdateTheme()
+end, "left")
+miscTab:Section("Utilities", "right")
+miscTab:Button("Save Config", function()
+    print("Config saved!")
+end, "right")
+
+miscTab:TextBox("Config Name", function(text)
+    print("Config name:", text)
+end, "right")
+]]
+return Mint
+
+
