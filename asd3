@@ -330,34 +330,7 @@ end
     self.TitleLabel.Parent = self.Header
     registerThemedElement(self.TitleLabel, {TextColor3 = "Accent"})
     
-    -- Minimize Button
-    local minimizeButton = Instance.new("TextButton")
-    minimizeButton.Name = "MinimizeButton"
-    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    minimizeButton.Position = UDim2.new(1, -80, 0.5, -15)
-    minimizeButton.BackgroundColor3 = _G.Theme.Secondary
-    minimizeButton.BorderSizePixel = 0
-    minimizeButton.Text = "−"
-    minimizeButton.TextColor3 = _G.Theme.Text
-    minimizeButton.TextSize = 18
-    minimizeButton.Font = Enum.Font.GothamBold
-    minimizeButton.Parent = self.Header
-    registerThemedElement(minimizeButton, {BackgroundColor3 = "Secondary", TextColor3 = "Text"})
-    
-    CreateCorner(6).Parent = minimizeButton
-    local minimizeStroke = CreateStroke(_G.Theme.BorderLight, 1)
-    minimizeStroke.Parent = minimizeButton
-    registerThemedElement(minimizeStroke, {Color = "BorderLight"})
-    AnimateHover(minimizeButton, {BackgroundColor3 = _G.Theme.Secondary:Lerp(_G.Theme.Accent, 0.2)}, {BackgroundColor3 = _G.Theme.Secondary})
-    
-    minimizeButton.MouseButton1Click:Connect(function()
-        self.isMinimized = not self.isMinimized
-        local targetSize = self.isMinimized and UDim2.new(0, self.MainFrame.Size.X.Offset, 0, 35) or UDim2.new(0, self.MainFrame.Size.X.Offset, 0, self.MainFrame.Size.Y.Offset)
-        TweenService:Create(self.MainFrame, Animations.Medium, {Size = targetSize}):Play()
-        self.TabContainer.Visible = not self.isMinimized
-        self.ContentContainer.Visible = not self.isMinimized
-        minimizeButton.Text = self.isMinimized and "+" or "−"
-    end)
+
     
     -- Close Button
     local closeButton = Instance.new("TextButton")
@@ -366,8 +339,8 @@ end
     closeButton.Position = UDim2.new(1, -40, 0.5, -15)
     closeButton.BackgroundColor3 = _G.Theme.Error
     closeButton.BorderSizePixel = 0
-    closeButton.Text = "×"
-    closeButton.TextColor3 = _G.Theme.Text
+    closeButton.Text = "-"
+    closeButton.TextColor3 = _G.Theme.Secondary
     closeButton.TextSize = 18
     closeButton.Font = Enum.Font.GothamBold
     closeButton.Parent = self.Header
