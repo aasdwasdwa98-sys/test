@@ -501,7 +501,7 @@ function Mint:UpdateTheme()
     
     local closeButton = self.Header:FindFirstChild("CloseButton")
     if closeButton then
-        closeButton.BackgroundColor3 = _G.Theme.Error
+        closeButton.BackgroundColor3 = _G.Theme.Secondary
         closeButton.TextColor3 = _G.Theme.Text
         local closeStroke = closeButton:FindFirstChildOfClass("UIStroke")
             -- Update close button hover
@@ -522,14 +522,14 @@ function Mint:UpdateTheme()
             closeButton.MouseEnter:Connect(function()
                 if not closeIsHovering then
                     closeIsHovering = true
-                    TweenService:Create(closeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Error:Lerp(_G.Theme.Accent, 0.2)}):Play()
+                    TweenService:Create(closeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Secondary:Lerp(_G.Theme.Accent, 0.2)}):Play()
                 end
             end)
             
             closeButton.MouseLeave:Connect(function()
                 if closeIsHovering then
                     closeIsHovering = false
-                    TweenService:Create(closeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Error}):Play()
+                    TweenService:Create(closeButton, Animations.Fast, {BackgroundColor3 = _G.Theme.Secondary}):Play()
                 end
             end)
     end
