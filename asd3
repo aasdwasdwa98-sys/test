@@ -337,10 +337,10 @@ end
     closeButton.Name = "CloseButton"
     closeButton.Size = UDim2.new(0, 30, 0, 30)
     closeButton.Position = UDim2.new(1, -40, 0.5, -15)
-    closeButton.BackgroundColor3 = _G.Theme.Error
+    closeButton.BackgroundColor3 = _G.Theme.Secondary
     closeButton.BorderSizePixel = 0
-    closeButton.Text = "-"
-    closeButton.TextColor3 = _G.Theme.Secondary
+    closeButton.Text = "×"
+    closeButton.TextColor3 = _G.Theme.Text
     closeButton.TextSize = 18
     closeButton.Font = Enum.Font.GothamBold
     closeButton.Parent = self.Header
@@ -353,7 +353,7 @@ end
     AnimateHover(closeButton, {BackgroundColor3 = _G.Theme.Error:Lerp(_G.Theme.Accent, 0.2)}, {BackgroundColor3 = _G.Theme.Error})
     
     closeButton.MouseButton1Click:Connect(function()
-        self.ScreenGui:Destroy()
+        self:ToggleVis()
     end)
     
     -- Resize Handle
